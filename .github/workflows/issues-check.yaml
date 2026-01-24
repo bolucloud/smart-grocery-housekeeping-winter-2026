@@ -12,7 +12,7 @@ jobs:
       id: check_linked_issue
       run: |
         PR_TITLE="${{ github.event.pull_request.title }}"
-        PR_BODY="${{ github.event.pull_request.body }}"
+        PR_BODY="${{ github.event.pull_request.body || '' }}"
         if ! echo "$PR_BODY" | grep -q "#[0-9]\+"; then
           echo "Pull Request does not reference a linked issue. Please link an issue in the PR description."
           echo "has_linked_issue=false" >> $GITHUB_OUTPUT
@@ -21,18 +21,6 @@ jobs:
           echo "has_linked_issue=true" >> $GITHUB_OUTPUT
         fi
 
-    - name: Comment on PR if theres no linked issue
-      if: steps.check_linked_issue.outputs.has_linked_issue == 'false'
-      uses: actions/github-script@v7
-      with:
-        script: |
-          const write_comment = {
-            owner: context.repo.owner,
-            repo: context.repo.repo,
-            issue_number: context.issue.number,
-            body: `⚠️ This Pull Request does not reference a linked issue. Please link an issue in the PR title or body.`
-          };        
-          await github.rest.issues.createComment(write_comment);
     - name: Fail if no linked issue
       if: steps.check_linked_issue.outputs.has_linked_issue == 'false'
       run: exit 1
