@@ -4,5 +4,4 @@ __pycache__/
 .mypy_cache/
 *.pyc
 .env
-node_modules/
 .DS_Store
