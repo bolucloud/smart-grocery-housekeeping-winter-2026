@@ -32,7 +32,7 @@ jobs:
             issue_number: context.issue.number,
             body: `⚠️ This Pull Request does not reference a linked issue. Please link an issue in the PR title or body.`
           };        
-          await github.issues.createComment(write_comment);
+          await github.rest.issues.createComment(write_comment);
     - name: Fail if no linked issue
       if: steps.check_linked_issue.outputs.has_linked_issue == 'false'
       run: exit 1
