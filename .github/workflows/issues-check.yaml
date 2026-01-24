@@ -13,7 +13,7 @@ jobs:
       run: |
         PR_TITLE="${{ github.event.pull_request.title }}"
         PR_BODY="${{ github.event.pull_request.body }}"
-        if [[ ! "$PR_BODY" =~ #[0-9]+ ]]; then
+        if ! echo "$PR_BODY" | grep -q "#[0-9]\+"; then
           echo "Pull Request does not reference a linked issue. Please link an issue in the PR description."
           echo "has_linked_issue=false" >> $GITHUB_OUTPUT
         else
