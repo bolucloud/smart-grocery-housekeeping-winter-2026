@@ -58,6 +58,11 @@ Now install dependencies
 poetry install
 ```
 
+## Run server
+```bash
+poetry run uvicorn main:app --reload
+```
+
 ## Dependency management
 
 All backend dependencies should be managed using **Poetry**.
