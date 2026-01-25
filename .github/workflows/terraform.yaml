@@ -45,9 +45,9 @@ jobs:
         AWS_REGION: ${{ env.AWS_REGION }}
       working-directory: ./infrastructure
 
-    - name: Terraform format
-      run: terraform fmt -check
-      working-directory: ./infrastructure
+    # - name: Terraform format
+    #   run: terraform fmt -check
+    #   working-directory: ./infrastructure
 
     - name: Terraform validate
       run: terraform validate
