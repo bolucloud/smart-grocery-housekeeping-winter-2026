@@ -9,7 +9,7 @@ from sqlalchemy.orm import DeclarativeBase
 class User(Base):
     __tablename__ = "users"
 
-    user_id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, primary_key=True) # will add indexing here later for faster search
     email = Column(String, unique=True, nullable=False)
     firebase_uid = Column(Integer, nullable=True) 
     display_name = Column(String, nullable=True)
