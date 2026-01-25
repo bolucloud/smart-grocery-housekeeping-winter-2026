@@ -1,0 +1,87 @@
+name: Deploy FastAPI Backend to AWS ECS
+
+on:
+  push:
+    branches:
+    - main
+    paths:
+    - 'backend/**'
+    - 'infrastructure/**'
+    - '.github/workflows/backend.yaml'
+
+jobs:
+  # setup-environment:
+  #   name: Setup environment
+  #   runs-on: self-hosted
+  #   outputs:
+  #     version: ${{ steps.get_version.outputs.version }}
+  #     commit_sha: ${{ steps.get_commit_sha.outputs.commit_sha }}
+
+  #   steps:
+  #   - name: Checkout code
+  #     uses: actions/checkout@v3
+  #   - name: Setup python3
+  #     uses: actions/setup-python@v4
+  #     with:
+  #       python-version: '3.11'
+  #   - name: install python and fastapi dependencies
+  #     run: |
+  #       cd app
+  #       pip3 install -r requirements.txt
+  #       pip3 install pytest pytest-cov black flake8
+
+  #   - name: Run linter
+  #     run: |
+  #       cd app
+  #       black --check .
+  #       flake8 .
+
+  #   - name: Run tests
+  #     run: |
+  #       cd app
+  #       pytest --cov=. --cov-report=xml
+
+  #   - name: Get version & sha
+  #     id: get_version_sha
+  #     run: ""
+
+  build-image-and-push:
+    name: Build docker image and push to ECR
+    needs: setup-environment
+    runs-on: self-hosted
+    outputs:
+      ecr_image_uri: ${{ steps.push-to-ecr.outputs.ecr_image_uri }}
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v2
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ env.AWS_REGION }}
+
+    - name: Login to AWS ECR
+      id: login-ecr
+      uses: aws-actions/amazon-ecr-login@v2
+
+    - name: Docker setup
+      uses: docker/setup-buildx-action@v3
+
+    - name: Build docker image
+      id: build-image
+      run: |
+        ECR_REPO_URI=""
+        VERSION="${{ needs.setup-environment.outputs.version }}"
+        docker build -t ${ECR_REPO_URI}:$VERSION -t ${ECR_REPO_URI}:latest -l "version=${VERSION}" -l "build-date=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" -f backend/Dockerfile .
+
+    - name: Push docker image to ECR
+      id: push-to-ecr
+      run: |
+        ECR_REPO_URI=""
+        VERSION="${{ needs.setup-environment.outputs.version }}"
+        docker push ${ECR_REPO_URI}:$VERSION
+        docker push ${ECR_REPO_URI}:latest
+        echo "ecr_image_uri=${ECR_REPO_URI}:$VERSION" >> $GITHUB_OUTPUT
