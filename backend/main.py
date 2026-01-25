@@ -9,7 +9,7 @@ from app.schemas.user import UserCreate, UserOut
 
 app = FastAPI()
 
-# Create tables (simple approach for now)
+# Create tables
 Base.metadata.create_all(bind=engine)
 
 @app.get("/")
@@ -17,6 +17,8 @@ def root():
     return {"status": "ok", "message": "FastAPI is running"}
 
 
+#Each request gets its own DB session
+#FastAPI injects it automatically via Depends
 @app.get("/hello")
 def db_check(db: Session = Depends(get_db)):
     # if this returns, DB session is working
