@@ -10,7 +10,7 @@ router = APIRouter()
 def root():
     return {"status": "ok", "message": "FastAPI is running"}
 
-@router.get("/db-check")
+@router.get("db-check")
 def db_check(db: Session = Depends(get_db)):
     # Test DB connection
     db.execute(text("SELECT 1"))

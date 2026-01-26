@@ -9,7 +9,7 @@ from app.schemas.user import UserCreate, UserOut
 router = APIRouter()
 
 
-@router.get("/user/{user_id}", response_model=UserOut)
+@router.get("/{user_id}", response_model=UserOut)
 def get_user(user_id: int, db: Session = Depends(get_db)):
     user = db.query(User).filter(User.user_id == user_id).first()
     if not user:
@@ -18,7 +18,7 @@ def get_user(user_id: int, db: Session = Depends(get_db)):
 
 
 
-@router.post("/user", response_model=UserOut)
+@router.post("/", response_model=UserOut)
 def create_user(payload: UserCreate, db: Session = Depends(get_db)):
     user = User(email=payload.email, display_name=payload.display_name)
     db.add(user)
