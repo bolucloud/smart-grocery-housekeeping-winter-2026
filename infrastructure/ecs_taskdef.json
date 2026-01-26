@@ -5,8 +5,8 @@
         "essential": true,
         "portMappings": [
             {
-                "containerPort": "${var.ecs_container_port}",
-                "hostPort": "${var.ecs_container_port}",
+                "containerPort": var.ecs_container_port,
+                "hostPort": var.ecs_container_port,
                 "protocol": "tcp"
             }
         ],
