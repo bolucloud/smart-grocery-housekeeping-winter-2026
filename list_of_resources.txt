@@ -1,0 +1,4 @@
+dynamodb table for tfstate
+s3 bucket for tf state
+ec2 server for gha runner
+postgres rds db for app
