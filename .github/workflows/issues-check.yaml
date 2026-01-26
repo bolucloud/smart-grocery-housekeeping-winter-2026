@@ -10,6 +10,7 @@ jobs:
     steps:
     - name: Check for linked issue
       id: check_linked_issue
+      if: github.event_name == 'pull_request'
       run: |
         PR_TITLE="${{ github.event.pull_request.title }}"
         PR_BODY="${{ github.event.pull_request.body || '' }}"
