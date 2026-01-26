@@ -49,8 +49,8 @@ jobs:
     name: Build docker image and push to ECR
     needs: setup-environment
     runs-on: self-hosted
-    outputs:
-      ecr_image_uri: ${{ steps.push-to-ecr.outputs.ecr_image_uri }}
+    # outputs:
+    #   ecr_image_uri: ${{ steps.push-to-ecr.outputs.ecr_image_uri }}
 
     steps:
     - name: Checkout code
@@ -73,15 +73,17 @@ jobs:
     - name: Build docker image
       id: build-image
       run: |
-        ECR_REPO_URI=""
-        VERSION="${{ needs.setup-environment.outputs.version }}"
+        ECR_REPO_URI="480428003157.dkr.ecr.us-east-1.amazonaws.com/smart-grocery-housekeeping"
+        #VERSION="${{ needs.setup-environment.outputs.version }}"
+        VERSION="hello-world-1.0"
         docker build -t ${ECR_REPO_URI}:$VERSION -t ${ECR_REPO_URI}:latest -l "version=${VERSION}" -l "build-date=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" -f backend/Dockerfile .
 
     - name: Push docker image to ECR
       id: push-to-ecr
       run: |
-        ECR_REPO_URI=""
-        VERSION="${{ needs.setup-environment.outputs.version }}"
+        ECR_REPO_URI="480428003157.dkr.ecr.us-east-1.amazonaws.com/smart-grocery-housekeeping"
+        #VERSION="${{ needs.setup-environment.outputs.version }}"
+        VERSION="hello-world-1.0"
         docker push ${ECR_REPO_URI}:$VERSION
         docker push ${ECR_REPO_URI}:latest
         echo "ecr_image_uri=${ECR_REPO_URI}:$VERSION" >> $GITHUB_OUTPUT

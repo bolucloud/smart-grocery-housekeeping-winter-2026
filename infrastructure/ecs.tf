@@ -92,9 +92,11 @@ resource "aws_ecs_cluster" "grocery_ecs_cluster" {
             }
         }
     }
+    depends_on = [ aws_ecr_repository.smart_grocery_housekeeping_repository ]
+
 }
 
-resource "aws_ecs_task_definition" "name" {
+resource "aws_ecs_task_definition" "backend_task_def" {
   # try this health check command "curl -f http://localhost:${var.ecs_container_port}/health || exit 1"
     family = "${var.app_name}-task-def"
     network_mode = "awsvpc"
@@ -109,12 +111,13 @@ resource "aws_ecs_task_definition" "name" {
       operating_system_family = "LINUX"
       cpu_architecture = "X86_64"
     }
+    depends_on = [ aws_ecr_repository.smart_grocery_housekeeping_repository ]
 }
 
 resource "aws_ecs_service" "grocery_dev_service" {
-    name            = "${var.app_name}-dev-service"
+    name            = "${var.app_name}-backend-service"
     cluster         = aws_ecs_cluster.grocery_ecs_cluster.id
-    task_definition = aws_ecs_task_definition.name.id
+    task_definition = aws_ecs_task_definition.backend_task_def.id
     desired_count   = 1
 
     network_configuration {
@@ -126,4 +129,6 @@ resource "aws_ecs_service" "grocery_dev_service" {
     lifecycle {
       ignore_changes = [ desired_count ]
     }
+    depends_on = [ aws_ecr_repository.smart_grocery_housekeeping_repository ]
+
 }
