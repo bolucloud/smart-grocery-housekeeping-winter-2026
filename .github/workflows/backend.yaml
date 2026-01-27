@@ -47,7 +47,7 @@ jobs:
 
   build-image-and-push:
     name: Build docker image and push to ECR
-    needs: setup-environment
+    # needs: setup-environment
     runs-on: self-hosted
     # outputs:
     #   ecr_image_uri: ${{ steps.push-to-ecr.outputs.ecr_image_uri }}

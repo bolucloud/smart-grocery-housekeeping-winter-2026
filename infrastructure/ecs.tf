@@ -105,7 +105,40 @@ resource "aws_ecs_task_definition" "backend_task_def" {
     memory = var.memory
     execution_role_arn = aws_iam_role.grocery_task_execution_role.arn
     task_role_arn = aws_iam_role.grocery_task_role.arn
-    container_definitions = file("ecs_taskdef.json")
+    container_definitions = jsonencode([
+        {
+            "name": "${var.app_name}-container",
+            "image": "${aws_ecr_repository.smart_grocery_housekeeping_repository.repository_url}:latest",
+            "essential": true,
+            "portMappings": [
+                {
+                    "containerPort": var.ecs_container_port,
+                    "hostPort": var.ecs_container_port,
+                    "protocol": "tcp"
+                }
+            ],
+            "environment": [],
+            "secrets": [],
+            "logConfiguration": {
+                "logDriver": "awslogs",
+                "options": {
+                    "awslogs-group": "/ecs/${var.app_name}",
+                    "awslogs-region": "us-east-1",
+                    "awslogs-stream-prefix": "ecs"
+                }
+            },
+            "healthCheck": {
+                "command": [
+                    "CMD-SHELL",
+                    "python -c \"import requests; requests.get('http://localhost:${var.ecs_container_port}/health', timeout=2)\" || exit 1"
+                ],
+                "interval": 30,
+                "timeout": 5,
+                "retries": 3,
+                "startPeriod": 30
+            }
+        }
+    ])
 
     runtime_platform {
       operating_system_family = "LINUX"
@@ -114,7 +147,7 @@ resource "aws_ecs_task_definition" "backend_task_def" {
     depends_on = [ aws_ecr_repository.smart_grocery_housekeeping_repository ]
 }
 
-resource "aws_ecs_service" "grocery_dev_service" {
+resource "aws_ecs_service" "grocery_backend_service" {
     name            = "${var.app_name}-backend-service"
     cluster         = aws_ecs_cluster.grocery_ecs_cluster.id
     task_definition = aws_ecs_task_definition.backend_task_def.id
