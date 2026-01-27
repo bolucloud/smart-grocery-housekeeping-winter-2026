@@ -147,7 +147,7 @@ resource "aws_ecs_task_definition" "backend_task_def" {
     depends_on = [ aws_ecr_repository.smart_grocery_housekeeping_repository ]
 }
 
-resource "aws_ecs_service" "grocery_dev_service" {
+resource "aws_ecs_service" "grocery_backend_service" {
     name            = "${var.app_name}-backend-service"
     cluster         = aws_ecs_cluster.grocery_ecs_cluster.id
     task_definition = aws_ecs_task_definition.backend_task_def.id
