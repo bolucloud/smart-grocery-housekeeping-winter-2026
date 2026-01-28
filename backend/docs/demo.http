@@ -12,7 +12,7 @@ GET {{baseURL}}/health/db-check
 
 
 ### ----------------------------
-### Health Check Endpoints
+### User Endpoints
 ### ----------------------------
 
 ### Create User
