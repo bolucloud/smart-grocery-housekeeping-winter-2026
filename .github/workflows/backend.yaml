@@ -5,10 +5,12 @@ on:
     branches:
     - main
     paths:
-    - 'backend/**'
+    #   - 'backend/**'
     - 'infrastructure/**'
     - '.github/workflows/backend.yaml'
 
+env:
+  AWS_REGION: us-east-1
 jobs:
   # setup-environment:
   #   name: Setup environment
