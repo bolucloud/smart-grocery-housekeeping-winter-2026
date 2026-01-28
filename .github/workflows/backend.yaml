@@ -5,7 +5,7 @@ on:
     branches:
     - main
     paths:
-    #   - 'backend/**'
+    - 'backend/**'
     - 'infrastructure/**'
     - '.github/workflows/backend.yaml'
 
