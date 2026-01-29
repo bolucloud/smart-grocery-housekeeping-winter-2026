@@ -1,0 +1,35 @@
+@baseURL = http://localhost:8000
+
+### ----------------------------
+### Health Check Endpoints
+### ----------------------------
+
+### Root
+GET {{baseURL}}/health
+
+### DB Check
+GET {{baseURL}}/health/db-check
+
+
+### ----------------------------
+### User Endpoints
+### ----------------------------
+
+### Create User
+# @name createUser
+POST {{baseURL}}/user
+Content-Type: application/json
+
+{
+    "email": "test1@test.com",
+    "display_name": "test1"
+}
+
+### Store User ID
+@userID = {{createUser.response.body.user_id}}
+
+### Get User
+GET {{baseURL}}/user/{{userID}}
+
+### Delete User
+DELETE {{baseURL}}/user/{{userID}}
