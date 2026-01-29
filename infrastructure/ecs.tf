@@ -152,6 +152,7 @@ resource "aws_ecs_service" "grocery_backend_service" {
     cluster         = aws_ecs_cluster.grocery_ecs_cluster.id
     task_definition = aws_ecs_task_definition.backend_task_def.id
     desired_count   = 1
+    launch_type     = "FARGATE"
 
     network_configuration {
         subnets          = data.aws_subnets.smart_grocery_public_subnets.ids
