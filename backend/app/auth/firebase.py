@@ -15,6 +15,5 @@ def init_firebase() -> None:
 
 
 def decode_token(id_token: str) -> FirebaseClaims:
-    # not checking if token is revoked right now to avoid unnecessary network calls
-    decoded = auth.verify_id_token(id_token)
+    decoded = auth.verify_id_token(id_token, check_revoked=True)
     return FirebaseClaims.model_validate(decoded)

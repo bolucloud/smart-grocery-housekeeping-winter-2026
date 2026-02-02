@@ -14,11 +14,3 @@ def get_db() -> Generator[Session, None, None]:
         raise
     finally:
         db.close()
-
-
-def get_db_no_commit() -> Generator[Session, None, None]:
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()

@@ -10,13 +10,25 @@ from app.db.base import Base
 from app.db.session import engine
 
 from app.auth.firebase import init_firebase
+from google.auth.exceptions import DefaultCredentialsError
 
 logger = logging.getLogger(__name__)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # --- app startup ---
-    init_firebase()
+    try:
+        init_firebase()
+    except DefaultCredentialsError as e:
+        logger.exception(
+            "Firebase init failed: Application Default Credentials not found. "
+            "Set GOOGLE_APPLICATION_CREDENTIALS to a service-account JSON file (local dev), "
+            "or configure ADC in the runtime environment."
+        )
+        raise RuntimeError("Firebase initialization failed; see logs for details.") from e
+    except Exception as e:
+        logger.exception("Firebase init failed during startup.")
+        raise RuntimeError("Firebase initialization failed; see logs for details.") from e
     # TEMP for learning (later use Alembic)
     Base.metadata.create_all(bind=engine)
     yield

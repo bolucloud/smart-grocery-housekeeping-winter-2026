@@ -6,7 +6,6 @@ from firebase_admin import auth
 from app.auth.firebase import decode_token
 from app.schemas.firebase import FirebaseClaims
 
-from app.db.deps import get_db
 from app.models.user import User
 from app.data_access.user_dal import UserDAL
 from app.data_access.deps import get_user_dal
@@ -41,8 +40,17 @@ def get_bearer_token(
 
 def get_firebase_claims(id_token: str = Depends(get_bearer_token)) -> FirebaseClaims:
     try:
-        # not checking revoked (for now at least) to avoid unnecessary network calls
         return decode_token(id_token)
+    except auth.RevokedIdTokenError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="ID token has been revoked"
+        )
+    except auth.UserDisabledError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="User account is disabled"
+        )
     except auth.InvalidIdTokenError:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -72,10 +80,10 @@ def get_firebase_claims(id_token: str = Depends(get_bearer_token)) -> FirebaseCl
 
 def get_current_user(
     claims: FirebaseClaims = Depends(get_firebase_claims),
-    userDAL: UserDAL = Depends(get_user_dal)
+    user_dal: UserDAL = Depends(get_user_dal)
 ) -> User:
     firebase_uid = claims.uid
-    user = userDAL.get_user_by_firebase_uid(firebase_uid)
+    user = user_dal.get_user_by_firebase_uid(firebase_uid)
     if not user:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,

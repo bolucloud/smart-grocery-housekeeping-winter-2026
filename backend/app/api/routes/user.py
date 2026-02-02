@@ -1,8 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.exc import IntegrityError
-from sqlalchemy.orm import Session
 
-from app.db.deps import get_db
 from app.models.user import User
 from app.schemas.user import UserPrivate
 
@@ -21,16 +19,10 @@ def get_private_profile(user: User = Depends(get_current_user)):
 @router.post("/", response_model=UserPrivate, status_code=status.HTTP_201_CREATED)
 def create_user(
     claims: FirebaseClaims = Depends(get_firebase_claims),
-    userDAL: UserDAL = Depends(get_user_dal)
+    user_dal: UserDAL = Depends(get_user_dal)
 ):
     """Sign-up endpoint -- still requires Firebase idToken in Authorization header."""
     firebase_uid = claims.uid
-    existing_user = userDAL.get_user_by_firebase_uid(firebase_uid)
-    if existing_user:
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail="User already exists"
-        )
     
     if not claims.email:
         raise HTTPException(
@@ -40,19 +32,31 @@ def create_user(
     
     # TODO:
     # check if email is verified?
-    # need to handle possible race-condition if two concurrent requests for a new user come in?
-    return userDAL.create_user(
-        firebase_uid=firebase_uid,
-        email=str(claims.email), # technically email is typed as EmailStr
-        display_name=claims.name,
-    )
+    try:
+        return user_dal.create_user(
+            firebase_uid=firebase_uid,
+            email=claims.email,
+            display_name=claims.name,
+        )
+    except IntegrityError:
+        # could be concurrent requests causing a race condition, try to recover
+        # and get the user that was created in the first request
+        user_dal.db.rollback()
+        existing_user = user_dal.get_user_by_firebase_uid(firebase_uid)
+        if existing_user:
+            return existing_user
+        
+        # if we make it here, it's a different issue, so return a 409
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="User already exists"
+        )
 
 
 # TODO: consider updating route pattern after introducing auth (same logic as above)
 @router.delete("/profile", status_code=status.HTTP_204_NO_CONTENT)
 def delete_user(
     user: User = Depends(get_current_user),
-    userDAL: UserDAL = Depends(get_user_dal)
+    user_dal: UserDAL = Depends(get_user_dal)
 ) -> None:
-    userDAL.delete_user(user)
-    return None
+    user_dal.delete_user(user)
