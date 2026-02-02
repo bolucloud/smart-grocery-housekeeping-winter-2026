@@ -2,51 +2,57 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
-
 from app.db.deps import get_db
 from app.models.user import User
-from app.schemas.user import UserCreate, UserOut
+from app.schemas.user import UserPrivate
+
+from app.api.deps import get_current_user, get_firebase_claims
+from app.schemas.firebase import FirebaseClaims
+from app.data_access.user_dal import UserDAL
+from app.data_access.deps import get_user_dal
 
 router = APIRouter()
 
-# TODO: consider updating route pattern after introducing auth to a self-fetch pattern e.g., GET /user
-# instead of GET /user/{user_id} so authentication doesn't depend on fragile additional checks outside of middleware
-@router.get("/{user_id}", response_model=UserOut)
-def get_user(user_id: int, db: Session = Depends(get_db)):
-    user = db.query(User).filter(User.user_id == user_id).first()
-    if not user:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+@router.get("/profile", response_model=UserPrivate)
+def get_private_profile(user: User = Depends(get_current_user)):
     return user
 
 
-@router.post("/", response_model=UserOut, status_code=status.HTTP_201_CREATED)
-def create_user(payload: UserCreate, db: Session = Depends(get_db)):
-    user = User(email=payload.email, display_name=payload.display_name)
-    db.add(user)
-    # just assuming a 409 right now for simplicity
-    # need to make more robust, potentially check pg constraints
-    try:
-        db.commit()
-    except IntegrityError:
-        db.rollback()
+@router.post("/", response_model=UserPrivate, status_code=status.HTTP_201_CREATED)
+def create_user(
+    claims: FirebaseClaims = Depends(get_firebase_claims),
+    userDAL: UserDAL = Depends(get_user_dal)
+):
+    """Sign-up endpoint -- still requires Firebase idToken in Authorization header."""
+    firebase_uid = claims.uid
+    existing_user = userDAL.get_user_by_firebase_uid(firebase_uid)
+    if existing_user:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
-            detail="A user with that email already exists"
+            detail="User already exists"
         )
-    db.refresh(user)
-    return user
+    
+    if not claims.email:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Email required in claim; choose alternate auth method"
+        )
+    
+    # TODO:
+    # check if email is verified?
+    # need to handle possible race-condition if two concurrent requests for a new user come in?
+    return userDAL.create_user(
+        firebase_uid=firebase_uid,
+        email=str(claims.email), # technically email is typed as EmailStr
+        display_name=claims.name,
+    )
 
 
 # TODO: consider updating route pattern after introducing auth (same logic as above)
-@router.delete("/{user_id}")
-def delete_user(user_id: int, db: Session = Depends(get_db)):
-    user = db.query(User).filter(User.user_id == user_id).first()
-    if not user:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
-
-    db.delete(user)
-    db.commit()
-    # 200 pattern where we return object for now to make for a better demo
-    return {
-        "deleted": user_id
-    }
+@router.delete("/profile", status_code=status.HTTP_204_NO_CONTENT)
+def delete_user(
+    user: User = Depends(get_current_user),
+    userDAL: UserDAL = Depends(get_user_dal)
+) -> None:
+    userDAL.delete_user(user)
+    return None
