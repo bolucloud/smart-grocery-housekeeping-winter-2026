@@ -1,81 +1,135 @@
-import { Image } from "expo-image";
-import { Link } from "expo-router";
-import { Platform, StyleSheet } from "react-native";
-import { HelloWave } from "@/components/hello-wave";
-import ParallaxScrollView from "@/components/parallax-scroll-view";
-import { ThemedText } from "@/components/themed-text";
-import { ThemedView } from "@/components/themed-view";
+import { useRouter } from "expo-router";
+import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { StatCard } from "@/components/grocery";
+import { AlertBanner, Card, IconSymbol } from "@/components/ui";
+import { CommonStyles } from "@/constants/styles";
+import { Colors, FontSizes, FontWeights, Spacing } from "@/constants/theme";
 
-export default function HomeScreen() {
+export default function DashboardScreen() {
+	const router = useRouter();
+
 	return (
-		<ParallaxScrollView
-			headerBackgroundColor={{ light: "#A1CEDC", dark: "#1D3D47" }}
-			headerImage={<Image source={require("@/assets/images/partial-react-logo.png")} style={styles.reactLogo} />}
-		>
-			<ThemedView style={styles.titleContainer}>
-				<ThemedText type="title">Welcome!</ThemedText>
-				<HelloWave />
-			</ThemedView>
-			<ThemedView style={styles.stepContainer}>
-				<ThemedText type="subtitle">Step 1: Try it</ThemedText>
-				<ThemedText>
-					Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes. Press{" "}
-					<ThemedText type="defaultSemiBold">
-						{Platform.select({
-							ios: "cmd + d",
-							android: "cmd + m",
-							web: "F12",
-						})}
-					</ThemedText>{" "}
-					to open developer tools.
-				</ThemedText>
-			</ThemedView>
-			<ThemedView style={styles.stepContainer}>
-				<Link href="/modal">
-					<Link.Trigger>
-						<ThemedText type="subtitle">Step 2: Explore</ThemedText>
-					</Link.Trigger>
-					<Link.Preview />
-					<Link.Menu>
-						<Link.MenuAction title="Action" icon="cube" onPress={() => alert("Action pressed")} />
-						<Link.MenuAction title="Share" icon="square.and.arrow.up" onPress={() => alert("Share pressed")} />
-						<Link.Menu title="More" icon="ellipsis">
-							<Link.MenuAction title="Delete" icon="trash" destructive onPress={() => alert("Delete pressed")} />
-						</Link.Menu>
-					</Link.Menu>
-				</Link>
+		<SafeAreaView style={CommonStyles.screen} edges={["top"]}>
+			{/* Header */}
+			<View style={styles.header}>
+				<View>
+					<Text style={styles.greeting}>Hey, there</Text>
+					<Text style={styles.subtitle}>{"Let's track your groceries!"}</Text>
+				</View>
+				<Pressable
+					onPress={() => router.push("/settings")}
+					style={({ pressed }) => [styles.settingsButton, { opacity: pressed ? 0.7 : 1 }]}
+				>
+					<IconSymbol name="gearshape.fill" size={18} color={Colors.textSecondary} />
+				</Pressable>
+			</View>
 
-				<ThemedText>{`Tap the Explore tab to learn more about what's included in this starter app.`}</ThemedText>
-			</ThemedView>
-			<ThemedView style={styles.stepContainer}>
-				<ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-				<ThemedText>
-					{`When you're ready, run `}
-					<ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{" "}
-					<ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{" "}
-					<ThemedText type="defaultSemiBold">app</ThemedText> to{" "}
-					<ThemedText type="defaultSemiBold">app-example</ThemedText>.
-				</ThemedText>
-			</ThemedView>
-		</ParallaxScrollView>
+			<ScrollView contentContainerStyle={CommonStyles.screenContent}>
+				{/* Expiring Alert */}
+				<AlertBanner
+					variant="error"
+					title="Expiring Soon (2)"
+					message="You have items that need attention before they expire."
+				/>
+
+				{/* Fridge Overview */}
+				<View>
+					<Text style={CommonStyles.sectionTitle}>{"What's in the Fridge?"}</Text>
+					<View style={styles.statGrid}>
+						<StatCard
+							title="Vegetables"
+							value={3}
+							backgroundColor={Colors.greenBg}
+							borderColor={Colors.greenBorder}
+							titleColor={Colors.greenTextDark}
+						/>
+						<StatCard
+							title="Fruits"
+							value={2}
+							backgroundColor={Colors.orangeBg}
+							borderColor={Colors.orangeBorder}
+							titleColor={Colors.orangeText}
+						/>
+						<StatCard
+							title="Packaged"
+							value={4}
+							backgroundColor={Colors.blueBg}
+							borderColor={Colors.blueBorder}
+							titleColor={Colors.blueTextDark}
+						/>
+					</View>
+				</View>
+
+				{/* Recently Added */}
+				<View>
+					<Text style={CommonStyles.sectionTitle}>Recently Added</Text>
+					<Card>
+						{["Carrots", "Milk", "Bananas", "Rice", "Eggs"].map((item, idx) => (
+							<View key={item} style={[styles.recentRow, idx < 4 && styles.recentRowBorder]}>
+								<Text style={styles.recentName}>{item}</Text>
+								<Text style={styles.recentDate}>Jan {30 - idx}</Text>
+							</View>
+						))}
+					</Card>
+				</View>
+			</ScrollView>
+		</SafeAreaView>
 	);
 }
 
 const styles = StyleSheet.create({
-	titleContainer: {
+	header: {
 		flexDirection: "row",
 		alignItems: "center",
-		gap: 8,
+		justifyContent: "space-between",
+		paddingHorizontal: Spacing.lg,
+		paddingVertical: Spacing.base,
+		backgroundColor: Colors.surface,
+		borderBottomWidth: 1,
+		borderBottomColor: Colors.borderSubtle,
 	},
-	stepContainer: {
-		gap: 8,
-		marginBottom: 8,
+	greeting: {
+		fontSize: FontSizes.xl,
+		fontWeight: FontWeights.semibold,
+		color: Colors.textPrimary,
 	},
-	reactLogo: {
-		height: 178,
-		width: 290,
-		bottom: 0,
-		left: 0,
-		position: "absolute",
+	subtitle: {
+		fontSize: FontSizes.xs,
+		color: Colors.textSecondary,
+		marginTop: 2,
+	},
+	settingsButton: {
+		width: 40,
+		height: 40,
+		borderRadius: 20,
+		backgroundColor: Colors.inputBg,
+		alignItems: "center",
+		justifyContent: "center",
+	},
+	statGrid: {
+		flexDirection: "row",
+		gap: Spacing.md,
+		marginTop: Spacing.md,
+	},
+	recentRow: {
+		flexDirection: "row",
+		justifyContent: "space-between",
+		alignItems: "center",
+		paddingVertical: Spacing.sm,
+	},
+	recentRowBorder: {
+		borderBottomWidth: 1,
+		borderBottomColor: Colors.borderSubtle,
+	},
+	recentName: {
+		fontSize: FontSizes.sm,
+		fontWeight: FontWeights.medium,
+		color: Colors.secondaryText,
+	},
+	recentDate: {
+		fontSize: FontSizes.xs,
+		color: Colors.textTertiary,
+		fontFamily: "monospace",
 	},
 });
