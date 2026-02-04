@@ -53,7 +53,6 @@ def create_user(
         )
 
 
-# TODO: consider updating route pattern after introducing auth (same logic as above)
 @router.delete("/profile", status_code=status.HTTP_204_NO_CONTENT)
 def delete_user(
     user: User = Depends(get_current_user),

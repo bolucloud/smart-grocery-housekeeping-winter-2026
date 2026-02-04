@@ -1,3 +1,4 @@
+import logging
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from pydantic import ValidationError
@@ -10,6 +11,7 @@ from app.models.user import User
 from app.data_access.user_dal import UserDAL
 from app.data_access.deps import get_user_dal
 
+logger = logging.getLogger(__name__)
 
 parse_auth = HTTPBearer(auto_error=False)
 
@@ -72,6 +74,7 @@ def get_firebase_claims(id_token: str = Depends(get_bearer_token)) -> FirebaseCl
             detail="ID token claims failed validation"
         )
     except Exception:
+        logger.exception("Unexpected error occurred while verifying Firebase ID token")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Error with authentication service"
