@@ -1,11 +1,9 @@
 from pydantic import BaseModel, EmailStr, ConfigDict
 
-class UserCreate(BaseModel):
-    email: EmailStr
-    display_name: str | None = None
 
 class UserPublic(BaseModel):
     display_name: str | None = None
+
 
 class UserPrivate(BaseModel):
     user_id: int
