@@ -1,12 +1,5 @@
 import { StyleSheet } from "react-native";
-import {
-	BorderRadius,
-	Colors,
-	FontSizes,
-	FontWeights,
-	Shadows,
-	Spacing,
-} from "./theme";
+import { BorderRadius, Colors, FontSizes, FontWeights, Shadows, Spacing } from "./theme";
 
 export const CommonStyles = StyleSheet.create({
 	// Screen containers
