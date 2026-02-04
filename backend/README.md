@@ -73,7 +73,16 @@ All backend dependencies should be managed using **Poetry**.
 
 Do **not** use `pip install` directly for this project, as it can desynchronize the environment from `poetry.lock`.
 
-### Troubleshooting virtual environment
+## Running pytest in Poetry
+
+From the repo root:
+
+```bash
+cd backend
+poetry run pytest
+```
+
+## Troubleshooting virtual environment
 
 See this GitHub issue thread for troubleshooting virtual environment issues with Poetry:
 https://github.com/python-poetry/poetry/issues/6841
