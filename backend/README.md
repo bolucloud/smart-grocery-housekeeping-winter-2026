@@ -72,3 +72,13 @@ All backend dependencies should be managed using **Poetry**.
 - Install existing dependencies with `poetry install`
 
 Do **not** use `pip install` directly for this project, as it can desynchronize the environment from `poetry.lock`.
+
+
+## Image Recognition (OpenAI) — Returns JSON
+
+This backend supports recognizing a grocery item from an uploaded image and returning a structured JSON response (item name, category, and confidence score.
+
+### What it does
+- Accepts an image upload (jpg/png)
+- Sends the image to OpenAI for recognition
+- Returns a JSON object describing the item (for use in the mobile/web app)
