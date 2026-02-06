@@ -1,4 +1,4 @@
-name: Deploy FastAPI Backend to AWS ECS
+name: Build and Deploy FastAPI backend to AWS
 
 on:
   push:
@@ -7,53 +7,42 @@ on:
     paths:
     - 'backend/**'
     - 'infrastructure/**'
-    - '.github/workflows/backend.yaml'
+    - '.github/workflows/backend**'
 
 env:
   AWS_REGION: us-east-1
-jobs:
-  # setup-environment:
-  #   name: Setup environment
-  #   runs-on: self-hosted
-  #   outputs:
-  #     version: ${{ steps.get_version.outputs.version }}
-  #     commit_sha: ${{ steps.get_commit_sha.outputs.commit_sha }}
+  ECR_REPOSITORY: smart-grocery-housekeeping
+  ECS_SERVICE: smart-grocery-housekeeping-backend-service
+  ECS_CLUSTER: smart-grocery-housekeeping-ecs-cluster
+  ECS_TASK_DEFINITION: infrastructure/backend_taskdef.json
+  CONTAINER_NAME: fastapi-backend
+  DOCKERFILE_PATH: ./Dockerfile
+  DOCKER_CONTEXT: .
 
+jobs:
+  ##### COMPLETE THIS WHEN JOHN GIVES ME THE TESTS TO RUN #####
+  # fastapi_and_python_tests:
+  #   runs-on: backend
   #   steps:
   #   - name: Checkout code
-  #     uses: actions/checkout@v3
-  #   - name: Setup python3
-  #     uses: actions/setup-python@v4
+  #     uses: actions/checkout@v4
+
+  #   - name: Set up Python
+  #     uses: actions/setup-python@v5
   #     with:
   #       python-version: '3.11'
-  #   - name: install python and fastapi dependencies
+  #       cache: 'pip'
+
+  #   - name: Install dependencies
   #     run: |
-  #       cd app
-  #       pip3 install -r requirements.txt
-  #       pip3 install pytest pytest-cov black flake8
+  #       python -m pip install --upgrade pip
+  #       if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+  #       if [ -f requirements-dev.txt ]; then pip install -r requirements-dev.txt; fi
+  #       pip install pytest pytest-asyncio pytest-cov httpx
 
-  #   - name: Run linter
-  #     run: |
-  #       cd app
-  #       black --check .
-  #       flake8 .
-
-  #   - name: Run tests
-  #     run: |
-  #       cd app
-  #       pytest --cov=. --cov-report=xml
-
-  #   - name: Get version & sha
-  #     id: get_version_sha
-  #     run: ""
-
-  build-image-and-push:
-    name: Build docker image and push to ECR
-    # needs: setup-environment
-    runs-on: self-hosted
-    # outputs:
-    #   ecr_image_uri: ${{ steps.push-to-ecr.outputs.ecr_image_uri }}
-
+  build-image-and-deploy:
+    runs-on: backend
+    # needs: fastapi_and_python_tests
     steps:
     - name: Checkout code
       uses: actions/checkout@v3
@@ -69,23 +58,26 @@ jobs:
       id: login-ecr
       uses: aws-actions/amazon-ecr-login@v2
 
-    - name: Docker setup
+    - name: Setup Docker Buildx
       uses: docker/setup-buildx-action@v3
 
     - name: Build docker image
       id: build-image
       run: |
         ECR_REPO_URI="480428003157.dkr.ecr.us-east-1.amazonaws.com/smart-grocery-housekeeping"
-        #VERSION="${{ needs.setup-environment.outputs.version }}"
-        VERSION="hello-world-1.0"
+        MAJOR_MINOR_VERSION="1.0"
+        BUILD_NUMBER=${GITHUB_RUN_NUMBER}
+        VERSION="${MAJOR_MINOR_VERSION}-${BUILD_NUMBER}"
         docker build -t ${ECR_REPO_URI}:$VERSION -t ${ECR_REPO_URI}:latest -l "version=${VERSION}" -l "build-date=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" -f backend/Dockerfile .
 
     - name: Push docker image to ECR
       id: push-to-ecr
       run: |
         ECR_REPO_URI="480428003157.dkr.ecr.us-east-1.amazonaws.com/smart-grocery-housekeeping"
-        #VERSION="${{ needs.setup-environment.outputs.version }}"
-        VERSION="hello-world-1.0"
+        MAJOR_MINOR_VERSION="1.0"
+        BUILD_NUMBER=${GITHUB_RUN_NUMBER}
+        VERSION="${MAJOR_MINOR_VERSION}-${BUILD_NUMBER}"
+
         docker push ${ECR_REPO_URI}:$VERSION
         docker push ${ECR_REPO_URI}:latest
         echo "ecr_image_uri=${ECR_REPO_URI}:$VERSION" >> $GITHUB_OUTPUT
