@@ -24,7 +24,7 @@ export default function RootLayout() {
 	return (
 		<ThemeProvider value={LightTheme}>
 			<Stack>
-				<Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+				<Stack.Screen name="(tabs)" options={{ headerShown: false, headerTitle: "Home" }} />
 				<Stack.Screen name="settings" options={{ title: "Settings", presentation: "card" }} />
 				<Stack.Screen name="reports" options={{ title: "Insights", presentation: "card" }} />
 			</Stack>
