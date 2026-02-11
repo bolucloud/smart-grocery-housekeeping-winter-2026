@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Response, status
 from sqlalchemy.exc import IntegrityError
 
 from app.models.user import User
@@ -16,8 +16,9 @@ def get_private_profile(user: User = Depends(get_current_user)):
     return user
 
 
-@router.post("/", response_model=UserPrivate, status_code=status.HTTP_201_CREATED)
+@router.post("/", response_model=UserPrivate)
 def create_user(
+    response: Response,
     claims: FirebaseClaims = Depends(get_firebase_claims),
     user_dal: UserDAL = Depends(get_user_dal)
 ):
@@ -33,20 +34,16 @@ def create_user(
     # TODO:
     # check if email is verified?
     try:
-        return user_dal.create_user(
+        user, created = user_dal.create_user_or_get_existing(
             firebase_uid=firebase_uid,
             email=claims.email,
             display_name=claims.name,
         )
+        response.status_code = status.HTTP_201_CREATED if created else status.HTTP_200_OK
+        return user
+    # might be a conflict on the email column
+    # send a 409 explaining the user already exists
     except IntegrityError:
-        # could be concurrent requests causing a race condition, try to recover
-        # and get the user that was created in the first request
-        user_dal.db.rollback()
-        existing_user = user_dal.get_user_by_firebase_uid(firebase_uid)
-        if existing_user:
-            return existing_user
-        
-        # if we make it here, it's a different issue, so return a 409
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail="User already exists"
