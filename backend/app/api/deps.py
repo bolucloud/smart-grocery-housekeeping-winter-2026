@@ -53,25 +53,25 @@ def get_firebase_claims(id_token: str = Depends(get_bearer_token)) -> FirebaseCl
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="User account is disabled"
         )
-    except auth.InvalidIdTokenError:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="ID token is invalid"
-        )
     except auth.ExpiredIdTokenError:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="ID token is expired"
         )
-    except ValueError:
+    except auth.InvalidIdTokenError:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="ID token is malformed"
+            detail="ID token is invalid"
         )
     except ValidationError:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="ID token claims failed validation"
+        )
+    except ValueError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="ID token is malformed"
         )
     except Exception:
         logger.exception("Unexpected error occurred while verifying Firebase ID token")

@@ -3,9 +3,12 @@ from unittest.mock import Mock, create_autospec
 
 from fastapi import HTTPException
 from fastapi.security import HTTPAuthorizationCredentials
+from pydantic import ValidationError
+from firebase_admin import auth
 
 from app.api import deps as api_deps
 from app.data_access.user_dal import UserDAL
+from app.schemas.firebase import FirebaseClaims
 
 TOKEN = "token123"
 
@@ -46,6 +49,67 @@ def test_get_firebase_claims_ok(monkeypatch, firebase_claims):
 
     mock_decode_token.assert_called_once_with(TOKEN)
     assert got == firebase_claims
+
+
+def make_firebase_exception(exc_type, message: str) -> Exception:
+    """
+    Helper to generate Firebase exceptions because some require cause
+    and signatures are not necessarily consistent across versions.
+    """
+    try:
+        return exc_type(message)
+    except TypeError:
+        return exc_type(message, Exception("cause"))
+
+
+@pytest.mark.parametrize(
+    "exc_constructor, expected_detail",
+    [
+        (lambda: make_firebase_exception(auth.RevokedIdTokenError, "revoked"), "ID token has been revoked"),
+        (lambda: make_firebase_exception(auth.UserDisabledError, "disabled"), "User account is disabled"),
+        (lambda: make_firebase_exception(auth.InvalidIdTokenError, "invalid"), "ID token is invalid"),
+        (lambda: make_firebase_exception(auth.ExpiredIdTokenError, "expired"), "ID token is expired"),
+        (lambda: ValueError("malformed"), "ID token is malformed"),
+    ],
+)
+def test_get_firebase_claims_known_failures_map_to_401(monkeypatch, exc_constructor, expected_detail):
+    monkeypatch.setattr(api_deps, "decode_token", Mock(side_effect=exc_constructor()))
+
+    with pytest.raises(HTTPException) as e:
+        api_deps.get_firebase_claims(TOKEN)
+
+    assert e.value.status_code == 401
+    assert e.value.detail == expected_detail
+
+
+def make_firebase_claims_validation_error() -> ValidationError:
+    """
+    Create a real Pydantic ValidationError by validating bad claims data.
+    """
+    with pytest.raises(ValidationError) as e:
+        FirebaseClaims.model_validate({})  # missing required fields
+    return e.value
+
+
+def test_get_firebase_claims_validation_error_maps_to_401(monkeypatch):
+    exc = make_firebase_claims_validation_error()
+    monkeypatch.setattr(api_deps, "decode_token", Mock(side_effect=exc))
+
+    with pytest.raises(HTTPException) as e:
+        api_deps.get_firebase_claims(TOKEN)
+
+    assert e.value.status_code == 401
+    assert e.value.detail == "ID token claims failed validation"
+
+
+def test_get_firebase_claims_unexpected_failure_maps_to_500(monkeypatch):
+    monkeypatch.setattr(api_deps, "decode_token", Mock(side_effect=RuntimeError("some error")))
+
+    with pytest.raises(HTTPException) as e:
+        api_deps.get_firebase_claims(TOKEN)
+
+    assert e.value.status_code == 500
+    assert e.value.detail == "Error with authentication service"
 
 
 def test_get_current_user_found(firebase_claims):
