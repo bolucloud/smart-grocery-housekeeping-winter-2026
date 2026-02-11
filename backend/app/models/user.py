@@ -11,7 +11,7 @@ class User(Base):
 
     user_id = Column(Integer, primary_key=True) # will add indexing here later for faster search
     email = Column(String, unique=True, nullable=False)
-    firebase_uid = Column(Integer, nullable=True) 
+    firebase_uid = Column(String, unique=True, nullable=False) 
     display_name = Column(String, nullable=True)
     # created_at = Column(DateTime, nullable=False, server_default=func.now())
     # updated_at = Column(DateTime, nullable=False, server_default=func.now(), onupdate=func.now())
