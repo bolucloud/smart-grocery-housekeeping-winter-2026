@@ -25,7 +25,6 @@ export function FilterPills({ options, selected, onSelect }: FilterPillsProps) {
 						onPress={() => onSelect(option.key)}
 						style={[styles.pill, isActive ? styles.pillActive : styles.pillInactive]}
 					>
-						{option.icon}
 						<Text style={[styles.pillText, isActive ? styles.pillTextActive : styles.pillTextInactive]}>
 							{option.label}
 						</Text>
@@ -43,7 +42,7 @@ const styles = StyleSheet.create({
 	pill: {
 		flexDirection: "row",
 		alignItems: "center",
-		gap: Spacing.sm,
+		justifyContent: "center",
 		paddingHorizontal: Spacing.lg,
 		paddingVertical: Spacing.sm + 2,
 		borderRadius: BorderRadius.full,
