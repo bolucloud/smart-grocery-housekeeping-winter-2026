@@ -1,31 +1,26 @@
 import { useState } from "react";
-import { ScrollView, StyleSheet, Text, View } from "react-native";
+import { ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { ProductCard } from "@/components/grocery";
-import { AlertBanner, FilterPills, IconSymbol, SearchBar } from "@/components/ui";
+import { AlertBanner, FilterPills, SearchBar } from "@/components/ui";
 import { CommonStyles } from "@/constants/styles";
-import { Colors, FontSizes, FontWeights, Spacing } from "@/constants/theme";
 
 const filterOptions = [
 	{
 		key: "all",
 		label: "All",
-		icon: <IconSymbol name="sparkles" size={16} color={Colors.primaryText} />,
 	},
 	{
 		key: "fresh",
 		label: "Fresh",
-		icon: <IconSymbol name="leaf.fill" size={16} color={Colors.primaryText} />,
 	},
 	{
 		key: "expiring",
 		label: "Expiring",
-		icon: <IconSymbol name="exclamationmark.triangle.fill" size={16} color={Colors.primaryText} />,
 	},
 	{
 		key: "spoiled",
 		label: "Spoiled",
-		icon: <IconSymbol name="trash" size={16} color={Colors.primaryText} />,
 	},
 ];
 
@@ -35,8 +30,8 @@ export default function InventoryScreen() {
 
 	return (
 		<SafeAreaView style={CommonStyles.screen} edges={["top"]}>
-			<View style={styles.header}>
-				<Text style={styles.title}>Inventory</Text>
+			<View style={CommonStyles.screenHeader}>
+				<Text style={CommonStyles.screenTitle}>Inventory</Text>
 			</View>
 
 			<ScrollView contentContainerStyle={CommonStyles.screenContent}>
@@ -90,17 +85,3 @@ export default function InventoryScreen() {
 	);
 }
 
-const styles = StyleSheet.create({
-	header: {
-		paddingHorizontal: Spacing.lg,
-		paddingVertical: Spacing.base,
-		backgroundColor: Colors.surface,
-		borderBottomWidth: 1,
-		borderBottomColor: Colors.borderSubtle,
-	},
-	title: {
-		fontSize: FontSizes.xl,
-		fontWeight: FontWeights.semibold,
-		color: Colors.textPrimary,
-	},
-});

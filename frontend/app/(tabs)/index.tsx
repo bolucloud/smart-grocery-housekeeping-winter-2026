@@ -12,7 +12,7 @@ export default function DashboardScreen() {
 	return (
 		<SafeAreaView style={CommonStyles.screen} edges={["top"]}>
 			{/* Header */}
-			<View style={styles.header}>
+			<View style={CommonStyles.screenHeader}>
 				<View>
 					<Text style={styles.greeting}>Hey, there</Text>
 					<Text style={styles.subtitle}>{"Let's track your groceries!"}</Text>
@@ -79,16 +79,6 @@ export default function DashboardScreen() {
 }
 
 const styles = StyleSheet.create({
-	header: {
-		flexDirection: "row",
-		alignItems: "center",
-		justifyContent: "space-between",
-		paddingHorizontal: Spacing.lg,
-		paddingVertical: Spacing.base,
-		backgroundColor: Colors.surface,
-		borderBottomWidth: 1,
-		borderBottomColor: Colors.borderSubtle,
-	},
 	greeting: {
 		fontSize: FontSizes.xl,
 		fontWeight: FontWeights.semibold,

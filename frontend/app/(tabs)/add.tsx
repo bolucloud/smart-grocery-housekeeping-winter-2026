@@ -15,8 +15,8 @@ export default function AddItemScreen() {
 
 	return (
 		<SafeAreaView style={CommonStyles.screen} edges={["top"]}>
-			<View style={styles.header}>
-				<Text style={styles.title}>Add Item</Text>
+			<View style={CommonStyles.screenHeader}>
+				<Text style={CommonStyles.screenTitle}>Add Item</Text>
 			</View>
 
 			<KeyboardAvoidingView
@@ -76,18 +76,6 @@ export default function AddItemScreen() {
 }
 
 const styles = StyleSheet.create({
-	header: {
-		paddingHorizontal: Spacing.lg,
-		paddingVertical: Spacing.base,
-		backgroundColor: Colors.surface,
-		borderBottomWidth: 1,
-		borderBottomColor: Colors.borderSubtle,
-	},
-	title: {
-		fontSize: FontSizes.xl,
-		fontWeight: FontWeights.semibold,
-		color: Colors.textPrimary,
-	},
 	scanCard: {
 		alignItems: "center",
 		paddingVertical: Spacing["2xl"],

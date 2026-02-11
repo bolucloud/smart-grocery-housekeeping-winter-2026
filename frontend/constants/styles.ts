@@ -18,6 +18,18 @@ export const CommonStyles = StyleSheet.create({
 		paddingTop: Spacing.lg,
 		gap: Spacing.lg,
 	},
+	screenHeader: {
+		paddingHorizontal: Spacing.lg,
+		paddingVertical: Spacing.base,
+		backgroundColor: Colors.surface,
+		borderBottomWidth: 1,
+		borderBottomColor: Colors.borderSubtle,
+	},
+	screenTitle: {
+		fontSize: FontSizes.xl,
+		fontWeight: FontWeights.semibold,
+		color: Colors.textPrimary,
+	},
 
 	// Card base
 	card: {

@@ -17,8 +17,8 @@ export default function HistoryScreen() {
 
 	return (
 		<SafeAreaView style={CommonStyles.screen} edges={["top"]}>
-			<View style={styles.header}>
-				<Text style={styles.title}>History</Text>
+			<View style={CommonStyles.screenHeader}>
+				<Text style={CommonStyles.screenTitle}>History</Text>
 			</View>
 
 			<ScrollView contentContainerStyle={CommonStyles.screenContent}>
@@ -90,18 +90,6 @@ export default function HistoryScreen() {
 }
 
 const styles = StyleSheet.create({
-	header: {
-		paddingHorizontal: Spacing.lg,
-		paddingVertical: Spacing.base,
-		backgroundColor: Colors.surface,
-		borderBottomWidth: 1,
-		borderBottomColor: Colors.borderSubtle,
-	},
-	title: {
-		fontSize: FontSizes.xl,
-		fontWeight: FontWeights.semibold,
-		color: Colors.textPrimary,
-	},
 	statsRow: {
 		flexDirection: "row",
 		gap: Spacing.base,

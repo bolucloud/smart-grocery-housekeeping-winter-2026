@@ -7,8 +7,8 @@ import { Colors, FontSizes, FontWeights, Spacing } from "@/constants/theme";
 export default function RecipesScreen() {
 	return (
 		<SafeAreaView style={CommonStyles.screen} edges={["top"]}>
-			<View style={styles.header}>
-				<Text style={styles.title}>Recipes</Text>
+			<View style={CommonStyles.screenHeader}>
+				<Text style={CommonStyles.screenTitle}>Recipes</Text>
 			</View>
 
 			<ScrollView contentContainerStyle={CommonStyles.screenContent}>
@@ -79,18 +79,6 @@ export default function RecipesScreen() {
 }
 
 const styles = StyleSheet.create({
-	header: {
-		paddingHorizontal: Spacing.lg,
-		paddingVertical: Spacing.base,
-		backgroundColor: Colors.surface,
-		borderBottomWidth: 1,
-		borderBottomColor: Colors.borderSubtle,
-	},
-	title: {
-		fontSize: FontSizes.xl,
-		fontWeight: FontWeights.semibold,
-		color: Colors.textPrimary,
-	},
 	recipeHeader: {
 		flexDirection: "row",
 		justifyContent: "space-between",
