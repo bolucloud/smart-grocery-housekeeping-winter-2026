@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ScrollView, StyleSheet, Text, View } from "react-native";
+import { ScrollView, StyleSheet, Text, View, KeyboardAvoidingView, Platform } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { QuantityStepper } from "@/components/grocery";
 import { Button, Card, IconSymbol, SegmentedControl, StyledTextInput } from "@/components/ui";
@@ -19,52 +19,58 @@ export default function AddItemScreen() {
 				<Text style={styles.title}>Add Item</Text>
 			</View>
 
-			<ScrollView contentContainerStyle={CommonStyles.screenContent}>
-				{/* Scan Button */}
-				<Card style={styles.scanCard}>
-					<View style={styles.scanIcon}>
-						<IconSymbol name="camera.fill" size={28} color={Colors.primaryText} />
-					</View>
-					<Text style={styles.scanTitle}>Scan Item</Text>
-					<Text style={styles.scanSubtitle}>Use camera to identify groceries</Text>
-				</Card>
-
-				{/* Manual Entry Form */}
-				<Card>
-					<Text style={styles.formTitle}>Manual Entry</Text>
-
-					<View style={styles.formFields}>
-						<StyledTextInput
-							label="Item Name"
-							required
-							value={name}
-							onChangeText={setName}
-							placeholder="e.g. Carrots"
-							maxLength={50}
-							hint={`${name.length}/50 characters`}
-						/>
-
-						<View>
-							<Text style={CommonStyles.label}>Category</Text>
-							<SegmentedControl options={categories} selectedIndex={categoryIndex} onChange={setCategoryIndex} />
+			<KeyboardAvoidingView
+				behavior={Platform.OS === "ios" ? "padding" : "height"}
+				style={{ flex: 1 }}
+				keyboardVerticalOffset={100}
+			>
+				<ScrollView contentContainerStyle={CommonStyles.screenContent}>
+					{/* Scan Button */}
+					<Card style={styles.scanCard}>
+						<View style={styles.scanIcon}>
+							<IconSymbol name="camera.fill" size={28} color={Colors.primaryText} />
 						</View>
+						<Text style={styles.scanTitle}>Scan Item</Text>
+						<Text style={styles.scanSubtitle}>Use camera to identify groceries</Text>
+					</Card>
 
-						<View>
-							<Text style={CommonStyles.label}>Quantity</Text>
-							<QuantityStepper
-								value={quantity}
-								onIncrement={() => setQuantity((q) => q + 1)}
-								onDecrement={() => setQuantity((q) => Math.max(1, q - 1))}
-								min={1}
+					{/* Manual Entry Form */}
+					<Card>
+						<Text style={styles.formTitle}>Manual Entry</Text>
+
+						<View style={styles.formFields}>
+							<StyledTextInput
+								label="Item Name"
+								required
+								value={name}
+								onChangeText={setName}
+								placeholder="e.g. Carrots"
+								maxLength={50}
+								hint={`${name.length}/50 characters`}
 							/>
+
+							<View>
+								<Text style={CommonStyles.label}>Category</Text>
+								<SegmentedControl options={categories} selectedIndex={categoryIndex} onChange={setCategoryIndex} />
+							</View>
+
+							<View>
+								<Text style={CommonStyles.label}>Quantity</Text>
+								<QuantityStepper
+									value={quantity}
+									onIncrement={() => setQuantity((q) => q + 1)}
+									onDecrement={() => setQuantity((q) => Math.max(1, q - 1))}
+									min={1}
+								/>
+							</View>
+
+							<StyledTextInput label="Best Before Date" required placeholder="YYYY-MM-DD" />
+
+							<Button title="Add to Inventory" onPress={() => { }} fullWidth size="lg" />
 						</View>
-
-						<StyledTextInput label="Best Before Date" required placeholder="YYYY-MM-DD" />
-
-						<Button title="Add to Inventory" onPress={() => {}} fullWidth size="lg" />
-					</View>
-				</Card>
-			</ScrollView>
+					</Card>
+				</ScrollView>
+			</KeyboardAvoidingView>
 		</SafeAreaView>
 	);
 }
