@@ -1,13 +1,15 @@
-# from sqlalchemy import Column, Integer, String, ForeignKey, UniqueConstraint
-# from sqlalchemy.orm import relationship
-# from db import Base
+from sqlalchemy import Column, Integer, String, DateTime, func
+from sqlalchemy.orm import relationship
 
-# class Category(Base):
+from app.db.base import Base
 
-#     __tablename__ = "categories"
 
-#     category_id = Column(Integer, primary_key=True)
-#     category_name = Column(String, nullable=False)
-#     updated_at = Column(DateTime, nullable=False, server_default=func.now())
-    
+class Category(Base):
+    __tablename__ = "categories"
+
+    category_id = Column(Integer, primary_key=True)
+    category_name = Column(String, nullable=False, unique=True)
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
+
     # Relationships
+    products = relationship("Product", back_populates="category")
