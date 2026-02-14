@@ -68,6 +68,26 @@ resource "aws_iam_role" "grocery_task_execution_role" {
   })
 }
 
+resource "aws_iam_role_policy_attachment" "grocery_task_role_policy_full" {
+  role = aws_iam_role.grocery_task_role.id
+  policy_arn = "arn:aws:iam::aws:policy/AdministratorAccess"
+}
+
+resource "aws_iam_role_policy_attachment" "grocery_task_execution_role_policy_full" {
+  role = aws_iam_role.grocery_task_execution_role.id
+  policy_arn = "arn:aws:iam::aws:policy/AdministratorAccess"
+}
+
+resource "aws_iam_role_policy_attachment" "grocery_task_role_policy_secrets" {
+  role = aws_iam_role.grocery_task_role.id
+  policy_arn = "arn:aws:iam::aws:policy/SecretsManagerReadWrite"
+}
+
+resource "aws_iam_role_policy_attachment" "grocery_task_execution_role_policy_secrets" {
+  role = aws_iam_role.grocery_task_execution_role.id
+  policy_arn = "arn:aws:iam::aws:policy/SecretsManagerReadWrite"
+}
+
 resource "aws_iam_role_policy_attachment" "grocery_task_execution_role_policy" {
   role = aws_iam_role.grocery_task_execution_role.id
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
