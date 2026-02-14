@@ -62,17 +62,22 @@ jobs:
         aws-region: ${{ env.AWS_REGION }}
 
     - name: Login to AWS ECR
-      id: login-ecr
-      uses: aws-actions/amazon-ecr-login@v2
-      with:
-        mask-password: true
-
-    - name: Clean Docker context
+      id: login-ecr-bash
       run: |
-        # Remove problematic Docker context
-        rm -rf ~/.docker/contexts
-        # Reset to default context
-        docker context use default
+        aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 480428003157.dkr.ecr.us-east-1.amazonaws.com
+
+    # - name: Login to AWS ECR
+    #   id: login-ecr
+    #   uses: aws-actions/amazon-ecr-login@v2
+    #   with:
+    #     mask-password: true
+
+    # - name: Clean Docker context
+    #   run: |
+    #     # Remove problematic Docker context
+    #     rm -rf ~/.docker/contexts
+    #     # Reset to default context
+    #     docker context use default
     # - name: Setup Docker Buildx
     #   uses: docker/setup-buildx-action@v3
 
