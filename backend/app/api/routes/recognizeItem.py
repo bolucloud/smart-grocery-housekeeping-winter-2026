@@ -5,9 +5,9 @@ import base64
 
 router = APIRouter()
 
-@router.post("/recognizeItem")
+@router.post("/")
 async def recognize_item(image: UploadFile = File(...)):
-    if image.content_type not in {"image/jpeg", "image/png", "image/webp"}:
+    if image.content_type not in {"image/jpeg", "image/png"}:
         raise HTTPException(status_code=400, detail="Unsupported image type")
 
     raw = await image.read()
