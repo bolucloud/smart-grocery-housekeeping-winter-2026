@@ -57,7 +57,7 @@ jobs:
         fi
 
   terraform:
-    name: Run Terraform CI/CD for Infrastructure Changes
+    name: Run Terraform CI/CD
     runs-on: self-hosted
 
     steps:
@@ -101,7 +101,7 @@ jobs:
       working-directory: ./infrastructure
 
   tests:
-    name: Run FastAPI and Python tests
+    name: Run Python tests
     runs-on: self-hosted
     # if: github.event_name == 'pull_request'
     steps:
@@ -126,7 +126,7 @@ jobs:
         pytest --cov=backend backend/tests/
 
   build-and-deploy:
-    name: Build FastAPI Backend Image and Deploy to AWS ECS
+    name: Build Backend Image and Deploy
     if: github.event.pull_request.merged == true
     runs-on: self-hosted
     needs: [ check-issue-link, terraform, tests ]
