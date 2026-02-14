@@ -24,7 +24,7 @@ env:
   ECS_TASK_DEFINITION: infrastructure/backend_taskdef.json
   CONTAINER_NAME: fastapi-backend
   DOCKERFILE_PATH: ./Dockerfile
-  DOCKER_CONTEXT: .
+  DOCKER_CONTEXT: default
 
 jobs:
   ##### COMPLETE THIS WHEN JOHN GIVES ME THE TESTS TO RUN #####
