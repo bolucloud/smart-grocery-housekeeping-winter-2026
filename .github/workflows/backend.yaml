@@ -55,7 +55,7 @@ jobs:
       uses: actions/checkout@v3
 
     - name: Configure AWS credentials
-      uses: aws-actions/configure-aws-credentials@v2
+      uses: aws-actions/configure-aws-credentials@v4
       with:
         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -64,9 +64,17 @@ jobs:
     - name: Login to AWS ECR
       id: login-ecr
       uses: aws-actions/amazon-ecr-login@v2
+      with:
+        mask-password: true
 
-    - name: Setup Docker Buildx
-      uses: docker/setup-buildx-action@v3
+    - name: Clean Docker context
+      run: |
+        # Remove problematic Docker context
+        rm -rf ~/.docker/contexts
+        # Reset to default context
+        docker context use default
+    # - name: Setup Docker Buildx
+    #   uses: docker/setup-buildx-action@v3
 
     - name: Build docker image
       id: build-image
