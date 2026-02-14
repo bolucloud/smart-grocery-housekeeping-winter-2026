@@ -51,7 +51,7 @@ jobs:
 
     - name: Run tests
       run: |
-        pytest --cov=backend tests/
+        pytest --cov=backend backend/tests/
 
   build-image-and-deploy:
     if: github.event.pull_request.merged == true
