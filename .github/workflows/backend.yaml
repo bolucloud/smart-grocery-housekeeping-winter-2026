@@ -11,6 +11,7 @@ on:
   pull_request:
     branches:
     - main
+    types: [ opened, synchronize, reopened ]
     paths:
     - 'backend/**'
     - 'infrastructure/**'
@@ -28,26 +29,32 @@ env:
 
 jobs:
   ##### COMPLETE THIS WHEN JOHN GIVES ME THE TESTS TO RUN #####
-  # fastapi_and_python_tests:
-  #   runs-on: backend
-  #   steps:
-  #   - name: Checkout code
-  #     uses: actions/checkout@v4
+  fastapi_and_python_tests:
+    runs-on: self-hosted
+    # if: github.event_name == 'pull_request'
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
 
-  #   - name: Set up Python
-  #     uses: actions/setup-python@v5
-  #     with:
-  #       python-version: '3.11'
-  #       cache: 'pip'
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+        cache: 'pip'
 
-  #   - name: Install dependencies
-  #     run: |
-  #       python -m pip install --upgrade pip
-  #       if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-  #       if [ -f requirements-dev.txt ]; then pip install -r requirements-dev.txt; fi
-  #       pip install pytest pytest-asyncio pytest-cov httpx
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+        if [ -f requirements-dev.txt ]; then pip install -r requirements-dev.txt; fi
+        pip install pytest pytest-asyncio pytest-cov httpx
+
+    - name: Run tests
+      run: |
+        pytest --cov=backend tests/
 
   build-image-and-deploy:
+    if: github.event.pull_request.merged == true
     runs-on: self-hosted
     # needs: fastapi_and_python_tests
     steps:
@@ -104,3 +111,12 @@ jobs:
         docker push ${ECR_REPO_URI}:$VERSION
         docker push ${ECR_REPO_URI}:latest
         echo "ecr_image_uri=${ECR_REPO_URI}:$VERSION" >> $GITHUB_OUTPUT
+
+    - name: Force New ECS on new image build
+      run: |
+        # Force new deployment with existing task definition
+        aws ecs update-service \
+          --cluster ${ECS_CLUSTER} \
+          --service ${ECS_SERVICE} \
+          --force-new-deployment \
+          --region ${AWS_REGION}
