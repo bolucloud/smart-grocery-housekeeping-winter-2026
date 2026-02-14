@@ -48,7 +48,7 @@ jobs:
   #       pip install pytest pytest-asyncio pytest-cov httpx
 
   build-image-and-deploy:
-    runs-on: backend
+    runs-on: self-hosted
     # needs: fastapi_and_python_tests
     steps:
     - name: Checkout code
