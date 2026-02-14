@@ -4,7 +4,7 @@ import json
 
 client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
 
-def recognize_item_with_ai(image: str):
+async def recognize_item_with_ai(image: str):
     try:
         prompt = (
             "Identify the grocery item in the image. "
