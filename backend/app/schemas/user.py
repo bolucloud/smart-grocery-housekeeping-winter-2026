@@ -1,13 +1,13 @@
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, ConfigDict
 
-class UserCreate(BaseModel):
-    email: EmailStr
+
+class UserPublic(BaseModel):
     display_name: str | None = None
 
-class UserOut(BaseModel):
+
+class UserPrivate(BaseModel):
     user_id: int
     email: EmailStr
     display_name: str | None = None
 
-    class Config:
-        from_attributes = True  
+    model_config = ConfigDict(from_attributes=True)

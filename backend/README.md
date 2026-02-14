@@ -63,7 +63,7 @@ poetry install
 poetry run uvicorn main:app --reload
 ```
 
-## Dependency management
+## Dependency management with Poetry
 
 All backend dependencies should be managed using **Poetry**.
 
@@ -82,3 +82,138 @@ This backend supports recognizing a grocery item from an uploaded image and retu
 - Accepts an image upload (jpg/png)
 - Sends the image to OpenAI for recognition
 - Returns a JSON object describing the item (for use in the mobile/web app)
+## Running pytest in Poetry
+
+From the repo root:
+
+```bash
+cd backend
+poetry run pytest
+```
+
+## Troubleshooting virtual environment
+
+See this GitHub issue thread for troubleshooting virtual environment issues with Poetry:
+https://github.com/python-poetry/poetry/issues/6841
+
+## Firebase setup (shared dev project) for local FastAPI testing
+
+This guide sets up Firebase for local development against our **shared Firebase dev project**.
+Each teammate will:
+1) be added to the shared Firebase project,
+2) generate their **own** service account key JSON,
+3) set `GOOGLE_APPLICATION_CREDENTIALS` locally,
+4) create a test Email/Password user in Firebase Auth (or use an existing one).
+
+Do **not** commit or share service account private keys in the repo.
+Each developer generates their own key and stores it locally (outside the repo or gitignored).
+
+Note: we will want other auth methods than plain Email/Password, but this is a good first step to get started
+
+---
+
+### 0) Prereqs
+
+- You have a Google account email you can use to access Firebase.
+- The project owner (currently: **John**) has added your email to the Firebase project.
+
+Firebase Console:
+https://console.firebase.google.com/
+
+---
+
+### 1) Project owner steps (John)
+
+#### 1.1 Create / choose the shared Firebase dev project
+1. Go to: https://console.firebase.google.com/
+2. Click **Add project** (or open the existing shared dev project).
+3. Follow the prompts to create the project (Google Analytics is optional for local testing).
+
+#### 1.2 Add teammates to the project
+1. In Firebase Console, click **Project settings**
+2. Open **Users and permissions**
+3. Click **Add member**
+4. Enter teammate Google account email(s)
+5. Assign a role (recommended: **Editor** for dev)
+6. Click **Add**
+
+Teammates will not be able to generate their own keys unless they have sufficient permissions.
+
+---
+
+### 2) Teammate steps (everyone who wants to test)
+
+#### 2.1 Accept the invite / confirm access
+1. Open: https://console.firebase.google.com/
+2. Confirm you can see the shared dev project in the project list.
+3. Click into the shared dev project.
+
+---
+
+### 3) Enable Firebase Authentication (Email/Password)
+
+This is typically done once per project. If it’s already enabled, you can skip.
+
+1. In Firebase Console: **Build → Authentication**
+2. Go to **Sign-in method**
+3. Enable **Email/Password**
+4. Click **Save**
+
+Reference:
+https://firebase.google.com/docs/auth/web/password-auth
+
+---
+
+### 4) Create a test user in Firebase Console (email/password)
+
+Each developer can create a test user for local testing.
+
+1. In **Build → Authentication**, go to the **Users** tab
+2. Click **Add user**
+3. Enter an email + password
+4. Save
+
+Reference:
+https://support.google.com/firebase/answer/6400802?hl=en
+
+---
+
+### 5) Generate your own service account key (Admin SDK credentials)
+
+Our FastAPI backend uses Firebase Admin SDK, which needs server-side credentials.
+
+Each teammate should generate their **own** private key JSON from the shared dev project:
+
+1. Firebase Console → **Project settings**
+2. Go to **Service accounts**
+3. Click **Generate new private key**
+4. Download the JSON file
+
+Reference:
+https://firebase.google.com/docs/admin/setup
+
+Treat this JSON like a password. Anyone with it can act as a privileged server against this Firebase project.
+
+---
+
+### 6) Store the JSON locally (DO NOT COMMIT)
+
+Recommended local path:
+
+- `$HOME/.config/smart-grocery-housekeeping/firebase-service-account.json`
+
+If you instead add in the repo, ensure it is gitignored.
+
+### 7) shell configuration
+
+On macOS, the default shell is **zsh**.
+
+Add the following line to `~/.zshrc`:
+
+export GOOGLE_APPLICATION_CREDENTIALS="$HOME/.config/smart-grocery-housekeeping/firebase-service-account.json"
+
+Then reload your shell
+
+If you're on a different OS, the gist is that you need to set an environment variable literally called
+`GOOGLE_APPLICATION_CREDENTIALS`
+with a value of the path that points to where you stored the JSON service account file.
