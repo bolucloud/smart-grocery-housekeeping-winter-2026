@@ -8,6 +8,13 @@ on:
     - 'backend/**'
     - 'infrastructure/**'
     - '.github/workflows/backend**'
+  pull_request:
+    branches:
+    - main
+    paths:
+    - 'backend/**'
+    - 'infrastructure/**'
+    - '.github/workflows/backend**'
 
 env:
   AWS_REGION: us-east-1

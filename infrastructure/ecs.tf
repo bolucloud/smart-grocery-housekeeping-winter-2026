@@ -110,15 +110,13 @@ resource "aws_ecs_task_definition" "backend_task_def" {
             "name": "${var.app_name}-container",
             "image": "${aws_ecr_repository.smart_grocery_housekeeping_repository.repository_url}:latest",
             "essential": true,
-            "portMappings": [
+            "environment": [],
+            "secrets": [
                 {
-                    "containerPort": var.ecs_container_port,
-                    "hostPort": var.ecs_container_port,
-                    "protocol": "tcp"
+                    "name": "DATABASE_URL",
+                    "valueFrom": "arn:aws:secretsmanager:us-east-1:480428003157:secret:smart-grocery-housekeeping-t8xjfQ"
                 }
             ],
-            "environment": [],
-            "secrets": [],
             "logConfiguration": {
                 "logDriver": "awslogs",
                 "options": {

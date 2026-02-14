@@ -4,7 +4,7 @@ variable "app_name" {
 
 variable "ecs_container_port" {
     type = number
-    default = 80
+    default = 8000
 }
 
 variable "cpu" {
