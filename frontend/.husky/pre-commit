@@ -1,0 +1,21 @@
+#!/bin/sh
+
+# Check if frontend source files changed but README was not updated.
+# This is a reminder, not a blocker -- the commit will still proceed.
+
+CHANGED=$(git diff --cached --name-only)
+
+SOURCE_CHANGED=$(echo "$CHANGED" | grep -E '^frontend/(app|components|constants)/' || true)
+README_CHANGED=$(echo "$CHANGED" | grep -E '^frontend/README\.md$' || true)
+
+if [ -n "$SOURCE_CHANGED" ] && [ -z "$README_CHANGED" ]; then
+  echo ""
+  echo "---------------------------------------------------------------"
+  echo "  REMINDER: frontend source files changed but README.md was"
+  echo "  not updated. Consider whether the README needs changes."
+  echo ""
+  echo "  Changed paths:"
+  echo "$SOURCE_CHANGED" | sed 's/^/    /'
+  echo "---------------------------------------------------------------"
+  echo ""
+fi

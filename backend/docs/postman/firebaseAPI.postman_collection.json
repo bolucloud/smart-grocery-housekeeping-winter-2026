@@ -1,0 +1,127 @@
+{
+  "info": {
+    "_postman_id": "6ae2debb-1b00-476e-8b07-f9a12597cb5c",
+    "name": "Firebase Auth REST API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Sign in with email and password",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "let body;",
+              "",
+              "try {",
+              "  body = pm.response.json();",
+              "} catch (e) {",
+              "  body = null;",
+              "}",
+              "",
+              "if (body && body.idToken) {",
+              "  pm.environment.set(\"firebase_id_token\", body.idToken);",
+              "}"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"email\": \"{{firebase_user_email}}\",\n    \"password\": \"{{firebase_user_password}}\",\n    \"returnSecureToken\": true\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key={{firebase_API_key_backend}}",
+          "protocol": "https",
+          "host": [
+            "identitytoolkit",
+            "googleapis",
+            "com"
+          ],
+          "path": [
+            "v1",
+            "accounts:signInWithPassword"
+          ],
+          "query": [
+            {
+              "key": "key",
+              "value": "{{firebase_API_key_backend}}"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Update display name",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "let body;",
+              "",
+              "try {",
+              "  body = pm.response.json();",
+              "} catch (e) {",
+              "  body = null;",
+              "}",
+              "",
+              "if (body && body.idToken) {",
+              "  pm.environment.set(\"firebase_id_token\", body.idToken);",
+              "}"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"idToken\": \"{{firebase_id_token}}\",\n  \"displayName\": \"Test User\",\n  \"returnSecureToken\": true\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "https://identitytoolkit.googleapis.com/v1/accounts:update?key={{firebase_API_key_backend}}",
+          "protocol": "https",
+          "host": [
+            "identitytoolkit",
+            "googleapis",
+            "com"
+          ],
+          "path": [
+            "v1",
+            "accounts:update"
+          ],
+          "query": [
+            {
+              "key": "key",
+              "value": "{{firebase_API_key_backend}}"
+            }
+          ]
+        }
+      },
+      "response": []
+    }
+  ]
+}
