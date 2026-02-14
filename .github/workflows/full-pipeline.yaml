@@ -27,6 +27,7 @@ env:
   CONTAINER_NAME: fastapi-backend
   DOCKERFILE_PATH: ./Dockerfile
   DOCKER_CONTEXT: default
+  DATABASE_URL: ${{ secrets.DATABASE_URL }}
 
 permissions:
   contents: read
