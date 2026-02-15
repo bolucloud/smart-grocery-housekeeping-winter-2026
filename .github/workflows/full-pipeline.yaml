@@ -188,8 +188,9 @@ jobs:
     - name: Force New ECS Deployment on new image build
       run: |
         # Force new deployment with existing task definition
-        aws ecs update-service \
-          --cluster ${ECS_CLUSTER} \
-          --service ${ECS_SERVICE} \
-          --force-new-deployment \
-          --region ${AWS_REGION}
+        # aws ecs update-service \
+        #   --cluster ${ECS_CLUSTER} \
+        #   --service ${ECS_SERVICE} \
+        #   --force-new-deployment \
+        #   --region ${AWS_REGION}
+        echo "do nothing for now....uncomment this step when service is up and running in ecs"
