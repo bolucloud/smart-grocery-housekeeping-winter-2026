@@ -127,7 +127,7 @@ jobs:
 
   build-and-deploy:
     name: Build Backend Image and Deploy
-    # if: github.event.pull_request.merged == true
+    if: github.event.pull_request.merged == true
     runs-on: self-hosted
     needs: [ check-issue-link, terraform, tests ]
     steps:
