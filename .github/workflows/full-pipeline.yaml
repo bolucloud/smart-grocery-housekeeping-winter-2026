@@ -94,11 +94,10 @@ jobs:
       if: github.event_name == 'pull_request'
       run: terraform plan -no-color -input=false
       working-directory: ./infrastructure
-
-    - name: Terraform apply
-      if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-      run: terraform apply -auto-approve -input=false
-      working-directory: ./infrastructure
+    # - name: Terraform apply
+    #   if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    #   run: terraform apply -auto-approve -input=false
+    #   working-directory: ./infrastructure
 
   tests:
     name: Run Python tests
