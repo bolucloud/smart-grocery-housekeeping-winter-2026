@@ -1,6 +1,7 @@
 from datetime import date, datetime
 from decimal import Decimal
 from pydantic import BaseModel, ConfigDict
+from app.schemas.inventory_batch import InventoryBatchRead
 
 
 class GroceryRunCreate(BaseModel):
@@ -31,5 +32,6 @@ class GroceryRunRead(BaseModel):
     archived: bool
     created_at: datetime
     updated_at: datetime
+    inventory_batches: list[InventoryBatchRead] = []
 
     model_config = ConfigDict(from_attributes=True)

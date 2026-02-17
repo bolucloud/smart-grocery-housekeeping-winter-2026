@@ -13,9 +13,15 @@ def get_grocery_runs(
     user_id: int = Depends(get_current_user_id),
     grocery_run_dal: GroceryRunDAL = Depends(get_grocery_run_dal),
     offset: int = Query(0, ge=0),
-    limit: int = Query(100, ge=1, le=200)
+    limit: int = Query(100, ge=1, le=200),
+    archived: bool | None = Query(None)
 ):
-    return grocery_run_dal.get_all_by_user_id(user_id=user_id, offset=offset, limit=limit)
+    return grocery_run_dal.get_all_by_user_id(
+        user_id=user_id,
+        offset=offset,
+        limit=limit,
+        archived=archived
+    )
 
 
 @router.post("/", response_model=GroceryRunRead, status_code=status.HTTP_201_CREATED)

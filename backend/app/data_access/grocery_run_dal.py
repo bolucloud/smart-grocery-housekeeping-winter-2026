@@ -1,4 +1,4 @@
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from app.models.grocery_run import GroceryRun
 from app.schemas.grocery_run import GroceryRunCreate, GroceryRunUpdate
 
@@ -20,6 +20,7 @@ class GroceryRunDAL:
         """Return a single grocery run by id and user."""
         return (
             self.db.query(GroceryRun)
+            .options(joinedload(GroceryRun.inventory_batches))
             .filter(GroceryRun.id == grocery_run_id, GroceryRun.user_id == user_id)
             .first()
         )
@@ -29,14 +30,18 @@ class GroceryRunDAL:
         *,
         user_id: int,
         offset: int = 0,
-        limit: int = 100
+        limit: int = 100,
+        archived: bool | None = None,
     ) -> list[GroceryRun]:
         """Return a paginated list of grocery runs for a user."""
+        query = self.db.query(GroceryRun).filter(GroceryRun.user_id == user_id)
+
+        if archived is not None:
+            query = query.filter(GroceryRun.archived == archived)
+
         # just going with a logical default for ordering currently
         return (
-            self.db.query(GroceryRun)
-            .filter(GroceryRun.user_id == user_id)
-            .order_by(GroceryRun.trip_date.desc())
+            query.order_by(GroceryRun.trip_date.desc())
             .offset(offset)
             .limit(limit)
             .all()

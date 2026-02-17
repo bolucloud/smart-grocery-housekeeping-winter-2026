@@ -9,6 +9,9 @@ class InventoryBatchCreate(BaseModel):
     grocery_run_id: int
     product_id: int
     quantity_added: Decimal
+    quantity_used: Decimal | None = None
+    quantity_spoiled: Decimal | None = None
+    quantity_disposed: Decimal | None = None
     storage_location: StorageLocation | None = None
     expired_at: datetime | None = None
 

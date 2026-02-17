@@ -9,7 +9,7 @@ class ProductCreate(BaseModel):
     category_id: int | None = None
     name: str
     brand: str | None = None
-    size: Decimal | None = None
+    size: str | None = None
     unit: str | None = None
     type: ProductType
     barcode: str | None = None
@@ -23,7 +23,7 @@ class ProductUpdate(BaseModel):
     category_id: int | None = None
     name: str | None = None
     brand: str | None = None
-    size: Decimal | None = None
+    size: str | None = None
     unit: str | None = None
     type: ProductType | None = None
     barcode: str | None = None
@@ -39,7 +39,7 @@ class ProductRead(BaseModel):
 
     name: str
     brand: str | None = None
-    size: Decimal | None = None
+    size: str | None = None
     unit: str | None = None
     type: ProductType
     barcode: str | None = None

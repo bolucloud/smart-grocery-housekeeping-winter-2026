@@ -4,6 +4,7 @@ from app.schemas.product import ProductRead, ProductCreate, ProductUpdate
 
 from app.api.deps import get_current_user_id
 from app.data_access.product_dal import ProductDAL
+from app.core.exceptions import UniqueBarcodeError
 from app.data_access.deps import get_product_dal
 
 router = APIRouter()
@@ -24,7 +25,13 @@ def create_product(
     user_id: int = Depends(get_current_user_id),
     product_dal: ProductDAL = Depends(get_product_dal)
 ):
-    return product_dal.create(user_id=user_id, data=data)
+    try:
+        return product_dal.create(user_id=user_id, data=data)
+    except UniqueBarcodeError as e:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=str(e)
+        )
 
 
 @router.get("/{product_id}", response_model=ProductRead)
@@ -49,7 +56,13 @@ def patch_product(
     user_id: int = Depends(get_current_user_id),
     product_dal: ProductDAL = Depends(get_product_dal)
 ):
-    product = product_dal.update(user_id=user_id, product_id=product_id, data=data)
+    try:
+        product = product_dal.update(user_id=user_id, product_id=product_id, data=data)
+    except UniqueBarcodeError as e:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=str(e)
+        )
     if not product:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,

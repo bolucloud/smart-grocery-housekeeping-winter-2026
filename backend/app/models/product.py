@@ -24,7 +24,7 @@ class Product(Base):
 
     name = Column(String, nullable=False)
     brand = Column(String, nullable=True)
-    size = Column(Numeric(10, 2), nullable=True)
+    size = Column(String, nullable=True)
     # should this be an ENUM eventually? maybe for now we enforce normalization via frontend options
     unit = Column(String, nullable=True)
     type = Column(Enum(ProductType, name="product_type"), nullable=False)
@@ -50,6 +50,8 @@ class Product(Base):
         Index("ix_products_user_category", "user_id", "category_id"),
         # barcode should be unique per user
         # only enforced when the barcode is present
+        # TODO: need to add handler for unique constraint violation
+        # I want to add a generic handler for constraint violations
         Index(
             "ux_products_user_barcode_not_null",
             "user_id",

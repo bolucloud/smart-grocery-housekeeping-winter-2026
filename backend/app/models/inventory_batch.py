@@ -49,20 +49,17 @@ class InventoryBatch(Base):
     grocery_run = relationship("GroceryRun", back_populates="inventory_batches")
     product = relationship("Product", back_populates="inventory_batches")
 
+    # TODO: need to add generic error handling for these constraint violations
+    # before adding them at the DB level like this
     __table_args__ = (
-        CheckConstraint("quantity_added >= 0", name="ck_batch_qty_added_nonneg"),
-        CheckConstraint("quantity_used >= 0", name="ck_batch_qty_used_nonneg"),
-        CheckConstraint("quantity_spoiled >= 0", name="ck_batch_qty_spoiled_nonneg"),
-        CheckConstraint("quantity_disposed >= 0", name="ck_batch_qty_disposed_nonneg"),
-        CheckConstraint(
-            "(quantity_used + quantity_spoiled + quantity_disposed) <= quantity_added",
-            name="ck_batch_qty_sum_le_added",
-        ),
-        # enforce 0.25 increments only (do we want this though?)
-        CheckConstraint("mod(quantity_added * 4, 1) = 0", name="ck_batch_qty_added_quarters"),
-        CheckConstraint("mod(quantity_used * 4, 1) = 0", name="ck_batch_qty_used_quarters"),
-        CheckConstraint("mod(quantity_spoiled * 4, 1) = 0", name="ck_batch_qty_spoiled_quarters"),
-        CheckConstraint("mod(quantity_disposed * 4, 1) = 0", name="ck_batch_qty_disposed_quarters"),
+        # CheckConstraint("quantity_added >= 0", name="ck_batch_qty_added_nonneg"),
+        # CheckConstraint("quantity_used >= 0", name="ck_batch_qty_used_nonneg"),
+        # CheckConstraint("quantity_spoiled >= 0", name="ck_batch_qty_spoiled_nonneg"),
+        # CheckConstraint("quantity_disposed >= 0", name="ck_batch_qty_disposed_nonneg"),
+        # CheckConstraint(
+        #     "(quantity_used + quantity_spoiled + quantity_disposed) <= quantity_added",
+        #     name="ck_batch_qty_sum_le_added",
+        # ),
 
         Index("ix_batches_run_completed", "grocery_run_id", "completed_at"),
         Index("ix_batches_expired_at", "expired_at"),

@@ -1,7 +1,8 @@
 from sqlalchemy.orm import Session
+from sqlalchemy.exc import IntegrityError
 from app.models.product import Product
 from app.schemas.product import ProductCreate, ProductUpdate
-
+from app.core.exceptions import UniqueBarcodeError
 
 class ProductDAL:
     """SQLAlchemy-backed data access helpers for `Product` records."""
@@ -12,7 +13,17 @@ class ProductDAL:
         """Create and persist a new product."""
         product = Product(user_id=user_id, **data.model_dump())
         self.db.add(product)
-        self.db.flush()
+        
+        try:
+            self.db.flush()
+        except IntegrityError as e:
+            self.db.rollback()
+            # TODO: replace with generic handler
+            # get constraint name off of e.orig (if it exists)
+            if "ux_products_user_barcode_not_null" in str(getattr(e, "orig", e)):
+                raise UniqueBarcodeError("A product with this barcode already exists")
+            raise
+
         self.db.refresh(product)
         return product
     
@@ -67,7 +78,16 @@ class ProductDAL:
         for field, val in patch_product.items():
             setattr(product, field, val)
 
-        self.db.flush()
+        try:
+            self.db.flush()
+        except IntegrityError as e:
+            self.db.rollback()
+            # TODO: replace with generic handler
+            # get constraint name off of e.orig (if it exists)
+            if "ux_products_user_barcode_not_null" in str(getattr(e, "orig", e)):
+                raise UniqueBarcodeError("A product with this barcode already exists")
+            raise
+
         self.db.refresh(product)
         return product
 
