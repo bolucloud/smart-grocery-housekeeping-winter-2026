@@ -28,6 +28,7 @@ RUN addgroup --system --gid 1001 app && \
 WORKDIR /app
 
 # Install dependencies
+RUN echo pwd
 COPY requirements.txt .
 RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir -r requirements.txt
@@ -38,7 +39,7 @@ RUN pip install --no-cache-dir --upgrade pip && \
 
 
 # Copy application
-COPY . .
+COPY app .
 
 # Debug . .
 RUN echo "=== Current directory contents ===" && pwd && ls -la
