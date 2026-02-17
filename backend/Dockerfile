@@ -40,9 +40,14 @@ RUN pip install --no-cache-dir --upgrade pip && \
 # Copy application
 COPY . .
 
+# Debug . .
+RUN echo "=== Current directory contents ===" && pwd && ls -la
+RUN echo "=== Checking if main.py exists ===" && test -f main.py && echo "main.py found!" || echo "main.py NOT found!"
+RUN echo "=== Testing import ===" && python -c "import main; print('Import successful')" || echo "Import failed"
 # Change ownership
-RUN chown -R app:app /app
 
+RUN chown -R app:app /app
+#RUN chmod -R 755 /app
 # Switch to non-root user
 USER app
 

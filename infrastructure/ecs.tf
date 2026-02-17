@@ -21,13 +21,22 @@ resource "aws_security_group" "smart_grocery_ecs_sg" {
     description = "Security group for Smart Grocery backend"
     vpc_id      = data.aws_vpc.smart_grocery_vpc.id
 
+    # ingress {
+    #     from_port   = var.ecs_container_port
+    #     to_port     = var.ecs_container_port
+    #     protocol    = "tcp"
+    #     #cidr_blocks = ["71.128.6.239/32"]
+    #     cidr_blocks = ["0.0.0.0/0"]
+    # }
+
     ingress {
-        from_port   = var.ecs_container_port
-        to_port     = var.ecs_container_port
-        protocol    = "tcp"
-        #cidr_blocks = ["71.128.6.239/32"]
-        cidr_blocks = ["0.0.0.0/0"]
+        description     = "Traffic from ALB"
+        from_port       = var.ecs_container_port
+        to_port         = var.ecs_container_port
+        protocol        = "tcp"
+        security_groups = [aws_security_group.alb.id]
     }
+
     egress {
         from_port   = 0
         to_port     = 0
@@ -183,4 +192,84 @@ resource "aws_ecs_service" "grocery_backend_service" {
     }
     depends_on = [ aws_ecr_repository.smart_grocery_housekeeping_repository ]
 
+}
+
+
+
+
+
+resource "aws_security_group" "alb" {
+  name        = "${var.app_name}-alb-sg"
+  description = "Security group for Application Load Balancer"
+  vpc_id      = data.aws_vpc.smart_grocery_vpc.id
+
+  ingress {
+    description = "HTTP from anywhere"
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    description = "HTTPS from anywhere"
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+}
+
+
+resource "aws_lb" "smart_grocery_alb" {
+  name               = "${var.app_name}-alb"
+  internal           = false
+  load_balancer_type = "application"
+  security_groups    = [aws_security_group.alb.id]
+  subnets            = data.aws_subnets.smart_grocery_public_subnets.ids
+
+  enable_deletion_protection = true
+}
+
+resource "aws_lb_target_group" "smart_grocery_target_group" {
+  name        = "${var.app_name}-tg"
+  port        = var.ecs_container_port
+  protocol    = "HTTP"
+  vpc_id      = data.aws_vpc.smart_grocery_vpc.id
+  target_type = "ip"
+
+  health_check {
+    enabled             = true
+    healthy_threshold   = 2
+    unhealthy_threshold = 2
+    timeout             = 5
+    interval            = 30
+    path                = "/health"
+    port                = "traffic-port"
+  }
+
+#   stickiness {
+#     type    = "lb_cookie"
+#     enabled = true
+#   }
+
+}
+
+
+resource "aws_lb_listener" "http_forward" {
+  load_balancer_arn = aws_lb.smart_grocery_alb.arn
+  port              = "80"
+  protocol          = "HTTP"
+
+  default_action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.smart_grocery_target_group.arn
+  }
 }
