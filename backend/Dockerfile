@@ -39,7 +39,7 @@ RUN pip install --no-cache-dir --upgrade pip && \
 
 
 # Copy application
-COPY app/ ./
+COPY ./app .
 
 # Debug . .
 RUN echo "=== Current directory contents ===" && pwd && ls -la
