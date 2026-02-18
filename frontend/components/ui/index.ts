@@ -4,6 +4,7 @@ export { Badge } from "./badge";
 export { BarcodeScannerModal } from "./barcode-scanner-modal";
 export { Button } from "./button";
 export { Card } from "./card";
+export { DateInput } from "./date-input";
 export { EmptyState } from "./empty-state";
 export { FilterPills } from "./filter-pills";
 export { IconSymbol } from "./icon-symbol";

@@ -15,6 +15,7 @@ import {
 	BarcodeScannerModal,
 	Button,
 	Card,
+	DateInput,
 	IconSymbol,
 	SegmentedControl,
 	SelectInput,
@@ -169,7 +170,9 @@ export default function AddItemScreen() {
 		const found: string[] = [];
 
 		if (formData.bestBeforeDate) {
-			const expiry = new Date(formData.bestBeforeDate);
+			// Parse as local time to avoid UTC off-by-one issues
+			const [y, m, d] = formData.bestBeforeDate.split("-").map(Number);
+			const expiry = new Date(y, m - 1, d);
 			const today = new Date();
 			today.setHours(0, 0, 0, 0);
 
@@ -317,26 +320,29 @@ export default function AddItemScreen() {
 								hint={`${formData.name.length}/50`}
 							/>
 
-							{/* Type */}
-							<View>
-								<Text style={styles.fieldLabel}>
-									Item Type <Text style={styles.required}>*</Text>
-								</Text>
-								<SegmentedControl
-									options={ITEM_TYPES}
-									selectedIndex={formData.typeIndex}
-									onChange={(i) => set("typeIndex", i)}
-								/>
-							</View>
-
 							{/* Category */}
-							<SelectInput
-								label="Category"
-								required
-								options={CATEGORY_OPTIONS}
-								value={formData.category}
-								onChange={(v) => set("category", v)}
-							/>
+							<View>
+								<SelectInput
+									label="Category"
+									required
+									options={CATEGORY_OPTIONS}
+									value={formData.category}
+									onChange={(v) => {
+										set("category", v);
+										if (v !== "Produce") set("typeIndex", 2);
+										else if (formData.typeIndex === 2) set("typeIndex", 0);
+									}}
+								/>
+								{formData.category === "Produce" && (
+									<View style={{ marginTop: 8 }}>
+										<SegmentedControl
+											options={["Vegetable", "Fruit"]}
+											selectedIndex={formData.typeIndex}
+											onChange={(i) => set("typeIndex", i)}
+										/>
+									</View>
+								)}
+							</View>
 
 							{/* Storage Location */}
 							<View>
@@ -380,26 +386,25 @@ export default function AddItemScreen() {
 								</View>
 							</View>
 
+							{/* Purchase Date */}
+							<DateInput
+								label="Purchase Date"
+								value={formData.purchaseDate}
+								onChange={(v) => set("purchaseDate", v)}
+								minimumDate={new Date(2000, 0, 1)}
+								maximumDate={new Date()}
+							/>
+
 							{/* Best Before Date */}
-							<StyledTextInput
+							<DateInput
 								label="Best Before Date"
 								required
-								placeholder="YYYY-MM-DD"
 								value={formData.bestBeforeDate}
-								onChangeText={(v) => {
+								onChange={(v) => {
 									set("bestBeforeDate", v);
 									setWarnings([]);
 								}}
-								keyboardType="numbers-and-punctuation"
-							/>
-
-							{/* Purchase Date */}
-							<StyledTextInput
-								label="Purchase Date"
-								placeholder="YYYY-MM-DD"
-								value={formData.purchaseDate}
-								onChangeText={(v) => set("purchaseDate", v)}
-								keyboardType="numbers-and-punctuation"
+								minimumDate={new Date(2000, 0, 1)}
 							/>
 
 							{/* Advanced Options */}
