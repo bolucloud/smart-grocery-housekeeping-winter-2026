@@ -39,8 +39,6 @@ const CATEGORY_OPTIONS = [
 	{ value: "Snacks", label: "Snacks" },
 	{ value: "Deli", label: "Deli" },
 	{ value: "Seafood", label: "Seafood" },
-	{ value: "Household", label: "Household" },
-	{ value: "Personal Care", label: "Personal Care" },
 ];
 
 const UNIT_OPTIONS = [
