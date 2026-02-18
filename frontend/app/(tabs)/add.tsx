@@ -86,6 +86,27 @@ function mapOFFCategory(tags: string[]): string | null {
 	return null;
 }
 
+// Parse OFF quantity string (e.g. "16 fl oz", "500 g") into size + sizeUnit
+function parseOFFQuantity(raw: string): { size: string; sizeUnit: string } | null {
+	const unitMap: [RegExp, string][] = [
+		[/fl\.?\s*oz/i, "fl oz"],
+		[/fluid\s*oz/i, "fl oz"],
+		[/ounce?s?/i, "oz"],
+		[/\boz\b/i, "oz"],
+		[/pounds?|\blbs?\b/i, "lb"],
+		[/kilograms?|\bkg\b/i, "kg"],
+		[/grams?|\bg\b/i, "g"],
+		[/millilitres?|milliliters?|\bml\b/i, "ml"],
+		[/litres?|liters?|\bl\b/i, "L"],
+		[/gallons?|\bgal\b/i, "gal"],
+	];
+	for (const [pattern, unit] of unitMap) {
+		const match = raw.match(new RegExp(`(\\d+(?:\\.\\d+)?)\\s*(?:${pattern.source})`, "i"));
+		if (match) return { size: match[1], sizeUnit: unit };
+	}
+	return null;
+}
+
 // ─── Types ───────────────────────────────────────────────────
 
 type FormData = {
@@ -155,7 +176,14 @@ export default function AddItemScreen() {
 
 				if (p.product_name) updates.name = p.product_name;
 				if (p.brands) updates.brand = p.brands.split(",")[0].trim();
-				if (p.quantity) updates.size = p.quantity;
+				if (p.quantity) {
+					const parsed = parseOFFQuantity(p.quantity);
+					if (parsed) {
+						updates.size = parsed.size;
+						updates.sizeUnit = parsed.sizeUnit;
+						updates.unit = "bag";
+					}
+				}
 
 				const category = mapOFFCategory(p.categories_tags ?? []);
 				if (category) updates.category = category;
@@ -189,6 +217,12 @@ export default function AddItemScreen() {
 			const twoYearsOut = new Date();
 			twoYearsOut.setFullYear(twoYearsOut.getFullYear() + 2);
 			if (expiry > twoYearsOut) found.push("Best before date is more than 2 years away. Is this correct?");
+
+			if (formData.purchaseDate) {
+				const [py, pm, pd] = formData.purchaseDate.split("-").map(Number);
+				const purchase = new Date(py, pm - 1, pd);
+				if (expiry < purchase) found.push("Best before date is before the purchase date. Double-check both dates.");
+			}
 		}
 
 		if (!Number(formData.quantity) || Number(formData.quantity) < 1) {
