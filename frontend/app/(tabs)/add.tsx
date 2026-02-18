@@ -10,7 +10,7 @@ import {
 	Text,
 	View,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import {
 	BarcodeScannerModal,
 	Button,
@@ -148,6 +148,7 @@ const DEFAULT_FORM: FormData = {
 // ─── Screen ──────────────────────────────────────────────────
 
 export default function AddItemScreen() {
+	const insets = useSafeAreaInsets();
 	const [formData, setFormData] = useState<FormData>(DEFAULT_FORM);
 	const [warnings, setWarnings] = useState<string[]>([]);
 	const [showToast, setShowToast] = useState(false);
@@ -259,7 +260,7 @@ export default function AddItemScreen() {
 		<SafeAreaView style={CommonStyles.screen} edges={["top"]}>
 			{/* Toast */}
 			{showToast && (
-				<View style={styles.toast} pointerEvents="none">
+				<View style={[styles.toast, { top: insets.top + Spacing.sm }]} pointerEvents="none">
 					<Text style={styles.toastText}>Item added successfully!</Text>
 				</View>
 			)}
@@ -340,7 +341,7 @@ export default function AddItemScreen() {
 								)}
 								{barcodeStatus === "not-found" && (
 									<Text style={styles.barcodeNotFound}>
-										Barcode not found in database. Fill in details manually or try &qout;Scan Item&qout;
+										Barcode not found in database. Fill in details manually or try &quot;Scan Item&quot;
 									</Text>
 								)}
 								{barcodeStatus === "error" && (
