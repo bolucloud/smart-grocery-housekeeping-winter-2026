@@ -26,7 +26,6 @@ import { BorderRadius, Colors, FontSizes, FontWeights, Spacing } from "@/constan
 
 // ─── Constants ───────────────────────────────────────────────
 
-const ITEM_TYPES = ["Vegetable", "Fruit", "Packaged"];
 const STORAGE_LOCATIONS = ["Fridge", "Pantry", "Freezer"];
 
 const CATEGORY_OPTIONS = [
@@ -45,6 +44,7 @@ const CATEGORY_OPTIONS = [
 ];
 
 const UNIT_OPTIONS = [
+	{ value: "ct", label: "Count (ct)" },
 	{ value: "piece", label: "Piece" },
 	{ value: "bag", label: "Bag" },
 	{ value: "box", label: "Box" },
@@ -56,12 +56,18 @@ const UNIT_OPTIONS = [
 	{ value: "container", label: "Container" },
 	{ value: "pack", label: "Pack" },
 	{ value: "loaf", label: "Loaf" },
-	{ value: "gallon", label: "Gallon" },
-	{ value: "pound", label: "Pound (lb)" },
-	{ value: "kilogram", label: "Kilogram (kg)" },
-	{ value: "ounce", label: "Ounce (oz)" },
-	{ value: "gram", label: "Gram (g)" },
 	{ value: "pouch", label: "Pouch" },
+];
+
+const SIZE_UNIT_OPTIONS = [
+	{ value: "oz", label: "oz" },
+	{ value: "fl oz", label: "fl oz" },
+	{ value: "lb", label: "lb" },
+	{ value: "g", label: "g" },
+	{ value: "kg", label: "kg" },
+	{ value: "ml", label: "ml" },
+	{ value: "L", label: "L" },
+	{ value: "gal", label: "gal" },
 ];
 
 // ─── Open Food Facts helpers ──────────────────────────────────
@@ -91,6 +97,7 @@ type FormData = {
 	storageIndex: number;
 	quantity: string;
 	size: string;
+	sizeUnit: string;
 	unit: string;
 	bestBeforeDate: string;
 	purchaseDate: string;
@@ -109,7 +116,8 @@ const DEFAULT_FORM: FormData = {
 	storageIndex: 1,
 	quantity: "1",
 	size: "",
-	unit: "piece",
+	sizeUnit: "oz",
+	unit: "ct",
 	bestBeforeDate: "",
 	purchaseDate: "",
 	shelfLifeDays: "",
@@ -356,7 +364,7 @@ export default function AddItemScreen() {
 								/>
 							</View>
 
-							{/* Quantity / Size / Unit */}
+							{/* Quantity / Unit */}
 							<View style={styles.triRow}>
 								<View style={{ flex: 1 }}>
 									<StyledTextInput
@@ -369,14 +377,6 @@ export default function AddItemScreen() {
 									/>
 								</View>
 								<View style={{ flex: 1 }}>
-									<StyledTextInput
-										label="Size"
-										placeholder="e.g. 1 Gallon"
-										value={formData.size}
-										onChangeText={(v) => set("size", v)}
-									/>
-								</View>
-								<View style={{ flex: 1 }}>
 									<SelectInput
 										label="Unit"
 										options={UNIT_OPTIONS}
@@ -385,6 +385,29 @@ export default function AddItemScreen() {
 									/>
 								</View>
 							</View>
+
+							{/* Package Size */}
+							{formData.unit !== "ct" && (
+								<View style={styles.triRow}>
+									<View style={{ flex: 1 }}>
+										<StyledTextInput
+											label="Package Size"
+											placeholder="e.g. 16"
+											value={formData.size}
+											onChangeText={(v) => set("size", v)}
+											keyboardType="numeric"
+										/>
+									</View>
+									<View style={{ flex: 1 }}>
+										<SelectInput
+											label="Size Unit"
+											options={SIZE_UNIT_OPTIONS}
+											value={formData.sizeUnit}
+											onChange={(v) => set("sizeUnit", v)}
+										/>
+									</View>
+								</View>
+							)}
 
 							{/* Purchase Date */}
 							<DateInput
