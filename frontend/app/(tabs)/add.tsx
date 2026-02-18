@@ -291,15 +291,15 @@ export default function AddItemScreen() {
 
 								{/* Barcode lookup feedback */}
 								{barcodeStatus === "found" && (
-									<Text style={styles.barcodeFound}>Product found — fields pre-filled below</Text>
+									<Text style={styles.barcodeFound}>Product found. Fields pre-filled below</Text>
 								)}
 								{barcodeStatus === "not-found" && (
 									<Text style={styles.barcodeNotFound}>
-										Barcode not found in database — fill in details manually or try &qout;Scan Item&qout;
+										Barcode not found in database. Fill in details manually or try &qout;Scan Item&qout;
 									</Text>
 								)}
 								{barcodeStatus === "error" && (
-									<Text style={styles.barcodeNotFound}>Lookup failed — check your connection</Text>
+									<Text style={styles.barcodeNotFound}>Lookup failed. Check your internet connection</Text>
 								)}
 							</View>
 
