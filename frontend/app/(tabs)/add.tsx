@@ -2,7 +2,6 @@ import { useState } from "react";
 import {
 	ActivityIndicator,
 	Alert,
-	KeyboardAvoidingView,
 	Platform,
 	Pressable,
 	ScrollView,
@@ -267,15 +266,12 @@ export default function AddItemScreen() {
 				<Text style={CommonStyles.screenTitle}>Add Item</Text>
 			</View>
 
-			<KeyboardAvoidingView
-				behavior={Platform.OS === "ios" ? "padding" : "height"}
+			<ScrollView
+				automaticallyAdjustKeyboardInsets
+				contentContainerStyle={[CommonStyles.screenContent, styles.scrollContent]}
+				keyboardShouldPersistTaps="handled"
 				style={{ flex: 1 }}
-				keyboardVerticalOffset={100}
 			>
-				<ScrollView
-					contentContainerStyle={[CommonStyles.screenContent, styles.scrollContent]}
-					keyboardShouldPersistTaps="handled"
-				>
 					{/* Item details form */}
 					<Card>
 						<Text style={styles.formTitle}>Item Details</Text>
@@ -518,8 +514,7 @@ export default function AddItemScreen() {
 							<Button title="Add to Inventory" onPress={handleSubmit} fullWidth size="lg" />
 						</View>
 					</Card>
-				</ScrollView>
-			</KeyboardAvoidingView>
+			</ScrollView>
 
 			{/* Barcode scanner modal */}
 			<BarcodeScannerModal
