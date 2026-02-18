@@ -278,27 +278,12 @@ export default function AddItemScreen() {
 					contentContainerStyle={[CommonStyles.screenContent, styles.scrollContent]}
 					keyboardShouldPersistTaps="handled"
 				>
-					{/* AI scan */}
-					<Pressable
-						style={({ pressed }) => [styles.scanButton, pressed && styles.scanButtonPressed]}
-						onPress={() => Alert.alert("Coming soon", "AI item scanner will be available in a future update.")}
-					>
-						<IconSymbol name="camera.fill" size={22} color={Colors.primaryText} />
-						<Text style={styles.scanButtonText}>Scan Item</Text>
-					</Pressable>
-
 					{/* Item details form */}
 					<Card>
 						<Text style={styles.formTitle}>Item Details</Text>
 
 						<View style={styles.fields}>
-							{/* Brand */}
-							<StyledTextInput
-								label="Brand"
-								placeholder="e.g. Once Upon a Farm"
-								value={formData.brand}
-								onChangeText={(v) => set("brand", v)}
-							/>
+
 
 							{/* Barcode */}
 							<View>
@@ -342,17 +327,38 @@ export default function AddItemScreen() {
 							</View>
 
 							{/* Name */}
+							<View>
+								<Text style={styles.fieldLabel}>
+									Item Name <Text style={styles.required}>*</Text>
+								</Text>
+								<View style={[styles.barcodeRow, { alignItems: "flex-start" }]}>
+									<View style={{ flex: 1 }}>
+										<StyledTextInput
+											placeholder="e.g. Mango Smoothie"
+											value={formData.name}
+											onChangeText={(v) => {
+												set("name", v);
+												setWarnings([]);
+											}}
+											maxLength={50}
+											hint={`${formData.name.length}/50`}
+										/>
+									</View>
+									<Pressable
+										style={({ pressed }) => [styles.barcodeButton, pressed && { opacity: 0.8 }]}
+										onPress={() => Alert.alert("Coming soon", "AI item scanner will be available in a future update.")}
+									>
+										<IconSymbol name="camera.fill" size={20} color={Colors.primaryText} />
+									</Pressable>
+								</View>
+							</View>
+
+							{/* Brand */}
 							<StyledTextInput
-								label="Item Name"
-								required
-								placeholder="e.g. Mango Smoothie"
-								value={formData.name}
-								onChangeText={(v) => {
-									set("name", v);
-									setWarnings([]);
-								}}
-								maxLength={50}
-								hint={`${formData.name.length}/50`}
+								label="Brand"
+								placeholder="e.g. Once Upon a Farm"
+								value={formData.brand}
+								onChangeText={(v) => set("brand", v)}
 							/>
 
 							{/* Category */}
@@ -552,23 +558,6 @@ const styles = StyleSheet.create({
 		color: Colors.primaryText,
 		fontSize: FontSizes.sm,
 		fontWeight: FontWeights.medium,
-	},
-	scanButton: {
-		backgroundColor: Colors.primary,
-		borderRadius: BorderRadius.md,
-		paddingVertical: Spacing.base,
-		paddingHorizontal: Spacing.base,
-		flexDirection: "row",
-		alignItems: "center",
-		gap: Spacing.md,
-	},
-	scanButtonPressed: {
-		opacity: 0.85,
-	},
-	scanButtonText: {
-		color: Colors.primaryText,
-		fontSize: FontSizes.base,
-		fontWeight: FontWeights.semibold,
 	},
 	formTitle: {
 		fontSize: FontSizes.base,
