@@ -101,12 +101,12 @@ export function DateInput({
 				/>
 			)}
 
-			{/* iOS: render picker inside a bottom-sheet modal */}
+			{/* iOS: bottom sheet modal with fade backdrop, same style as SelectInput */}
 			{Platform.OS === "ios" && (
 				<Modal
 					visible={showPicker}
 					transparent
-					animationType="slide"
+					animationType="fade"
 					onRequestClose={() => setShowPicker(false)}
 				>
 					<Pressable style={styles.backdrop} onPress={() => setShowPicker(false)}>
@@ -170,7 +170,6 @@ const styles = StyleSheet.create({
 	placeholder: {
 		color: Colors.textTertiary,
 	},
-	// iOS modal
 	backdrop: {
 		flex: 1,
 		backgroundColor: "rgba(0,0,0,0.4)",
@@ -181,6 +180,7 @@ const styles = StyleSheet.create({
 		borderTopLeftRadius: BorderRadius.lg,
 		borderTopRightRadius: BorderRadius.lg,
 		paddingBottom: Spacing["4xl"],
+		maxHeight: "55%",
 	},
 	sheetHeader: {
 		flexDirection: "row",
@@ -207,5 +207,6 @@ const styles = StyleSheet.create({
 	},
 	picker: {
 		width: "100%",
+		alignSelf: "center",
 	},
 });
