@@ -278,7 +278,7 @@ export default function AddItemScreen() {
 					contentContainerStyle={[CommonStyles.screenContent, styles.scrollContent]}
 					keyboardShouldPersistTaps="handled"
 				>
-					{/* Scan buttons */}
+					{/* AI scan */}
 					<Pressable
 						style={({ pressed }) => [styles.scanButton, pressed && styles.scanButtonPressed]}
 						onPress={() => Alert.alert("Coming soon", "AI item scanner will be available in a future update.")}
@@ -287,17 +287,9 @@ export default function AddItemScreen() {
 						<Text style={styles.scanButtonText}>Scan Item</Text>
 					</Pressable>
 
-					<Pressable
-						style={({ pressed }) => [styles.scanButton, pressed && styles.scanButtonPressed]}
-						onPress={() => setScannerVisible(true)}
-					>
-						<IconSymbol name="barcode.viewfinder" size={22} color={Colors.primaryText} />
-						<Text style={styles.scanButtonText}>Scan Barcode</Text>
-					</Pressable>
-
-					{/* Manual entry form */}
+					{/* Item details form */}
 					<Card>
-						<Text style={styles.formTitle}>Manual Entry</Text>
+						<Text style={styles.formTitle}>Item Details</Text>
 
 						<View style={styles.fields}>
 							{/* Brand */}
