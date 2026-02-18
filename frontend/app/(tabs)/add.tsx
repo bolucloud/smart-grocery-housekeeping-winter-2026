@@ -242,7 +242,7 @@ export default function AddItemScreen() {
 
 		const found = validate();
 		setWarnings(found);
-		if (found.some((w) => w.startsWith("Quantity"))) return;
+		if (found.some((w) => w.startsWith("Quantity") || w.startsWith("Best before date is before"))) return;
 
 		// TODO: wire to GroceryContext addItem() once context is built
 		setFormData(DEFAULT_FORM);
