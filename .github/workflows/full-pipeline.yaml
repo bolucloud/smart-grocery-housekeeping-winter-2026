@@ -170,7 +170,7 @@ jobs:
         MAJOR_MINOR_VERSION="1.0"
         BUILD_NUMBER=${GITHUB_RUN_NUMBER}
         VERSION="${MAJOR_MINOR_VERSION}-${BUILD_NUMBER}"
-        docker build --platform linux/amd64 -t ${ECR_REPO_URI}:$VERSION -t ${ECR_REPO_URI}:latest -f backend/Dockerfile .
+        docker build --platform linux/amd64 --build-arg DATABASE_URL=${{ secrets.DATABASE_URL }} -t ${ECR_REPO_URI}:$VERSION -t ${ECR_REPO_URI}:latest -f backend/Dockerfile .
 
     - name: Push docker image to ECR
       id: push-to-ecr

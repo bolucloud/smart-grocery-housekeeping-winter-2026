@@ -19,16 +19,6 @@
                 "awslogs-region": "us-east-1",
                 "awslogs-stream-prefix": "ecs"
             }
-        },
-        "healthCheck": {
-            "command": [
-                "CMD-SHELL",
-                "python -c \"import requests; requests.get('http://localhost:${var.ecs_container_port}/health', timeout=2)\" || exit 1"
-            ],
-            "interval": 30,
-            "timeout": 5,
-            "retries": 3,
-            "startPeriod": 30
         }
     }
 ]
