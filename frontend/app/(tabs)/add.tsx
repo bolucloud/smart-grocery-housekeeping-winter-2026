@@ -69,22 +69,8 @@ const SIZE_UNIT_OPTIONS = [
 
 // ─── Open Food Facts helpers ──────────────────────────────────
 
-function mapOFFCategory(tags: string[]): string | null {
-	const s = tags.join(" ").toLowerCase();
-	if (s.includes("dairy") || s.includes("milk") || s.includes("cheese") || s.includes("yogurt")) return "Dairy";
-	if (s.includes("meat") || s.includes("poultry") || s.includes("chicken") || s.includes("beef")) return "Meat";
-	if (s.includes("seafood") || s.includes("fish")) return "Seafood";
-	if (s.includes("beverage") || s.includes("drink") || s.includes("juice")) return "Beverages";
-	if (s.includes("frozen")) return "Frozen";
-	if (s.includes("bread") || s.includes("bakery") || s.includes("pastry")) return "Bakery";
-	if (s.includes("snack") || s.includes("chip") || s.includes("cracker") || s.includes("cookie")) return "Snacks";
-	if (s.includes("produce") || s.includes("fruit") || s.includes("vegetable")) return "Produce";
-	if (s.includes("deli")) return "Deli";
-	return null;
-}
-
-// Parse OFF quantity string (e.g. "16 fl oz", "500 g") into size + sizeUnit
-function parseOFFQuantity(raw: string): { size: string; sizeUnit: string } | null {
+// Parse a size/serving string (e.g. "16 fl oz", "355 ml", "500 g") into size + sizeUnit
+function parseSizeString(raw: string): { size: string; sizeUnit: string } | null {
 	const unitMap: [RegExp, string][] = [
 		[/fl\.?\s*oz/i, "fl oz"],
 		[/fluid\s*oz/i, "fl oz"],
@@ -101,6 +87,78 @@ function parseOFFQuantity(raw: string): { size: string; sizeUnit: string } | nul
 		const match = raw.match(new RegExp(`(\\d+(?:\\.\\d+)?)\\s*(?:${pattern.source})`, "i"));
 		if (match) return { size: match[1], sizeUnit: unit };
 	}
+	return null;
+}
+
+// Convert a parsed size to its base unit (ml for liquids, g for solids)
+function toBaseUnit(size: string, sizeUnit: string): number | null {
+	const n = parseFloat(size);
+	if (isNaN(n)) return null;
+	switch (sizeUnit) {
+		case "ml": return n;
+		case "L": return n * 1000;
+		case "fl oz": return n * 29.5735;
+		case "gal": return n * 3785.41;
+		case "g": return n;
+		case "kg": return n * 1000;
+		case "oz": return n * 28.3495;
+		case "lb": return n * 453.592;
+		default: return null;
+	}
+}
+
+// Map category from pnns_groups_1, pnns_groups_2, and categories_tags
+function mapOFFCategory(pnns1: string, pnns2: string, tags: string[]): string | null {
+	// open food api field pnns_groups_2 for finer-grained distinctions
+	const g2 = pnns2.toLowerCase();
+	if (g2.includes("frozen")) return "Frozen";
+	if (g2.includes("deli") || g2.includes("charcuterie")) return "Deli";
+	if (g2.includes("seafood") || g2.includes("fish")) return "Seafood";
+	if (g2.includes("bread") || g2.includes("pastry") || g2.includes("cake")) return "Bakery";
+	if (g2.includes("biscuit") || g2.includes("cookie") || g2.includes("snack")) return "Snacks";
+
+	// open food api field pnns_groups_1 for broad category
+	const g1 = pnns1.toLowerCase();
+	if (g1.includes("dairy") || g1.includes("milk")) return "Dairy";
+	if (g1.includes("fish") || g1.includes("meat") || g1.includes("egg")) return "Meat";
+	if (g1.includes("beverage")) return "Beverages";
+	if (g1.includes("fruit") || g1.includes("vegetable")) return "Produce";
+	if (g1.includes("sugary") || g1.includes("snack")) return "Snacks";
+	if (g1.includes("cereal") || g1.includes("fat") || g1.includes("sauce") || g1.includes("composite")) return "Pantry";
+
+	// fallback: categories_tags keyword scan
+	const s = tags.join(" ").toLowerCase();
+	if (s.includes("dairy") || s.includes("milk") || s.includes("cheese") || s.includes("yogurt")) return "Dairy";
+	if (s.includes("meat") || s.includes("poultry") || s.includes("chicken") || s.includes("beef")) return "Meat";
+	if (s.includes("seafood") || s.includes("fish")) return "Seafood";
+	if (s.includes("beverage") || s.includes("drink") || s.includes("juice")) return "Beverages";
+	if (s.includes("frozen")) return "Frozen";
+	if (s.includes("bread") || s.includes("bakery") || s.includes("pastry")) return "Bakery";
+	if (s.includes("snack") || s.includes("chip") || s.includes("cracker") || s.includes("cookie")) return "Snacks";
+	if (s.includes("produce") || s.includes("fruit") || s.includes("vegetable")) return "Produce";
+	if (s.includes("deli")) return "Deli";
+	return null;
+}
+
+// Infer storage location index from resolved category (0 = Fridge, 1 = Pantry, 2 = Freezer)
+function storageFromCategory(category: string): number {
+	if (["Dairy", "Meat", "Seafood", "Produce", "Deli"].includes(category)) return 0;
+	if (category === "Frozen") return 2;
+	return 1;
+}
+
+// infer package unit from packaging_tags (e.g. ["en:bottle", "en:glass"])
+function unitFromPackaging(tags: string[]): string | null {
+	const s = tags.join(" ").toLowerCase();
+	if (s.includes("can")) return "can";
+	if (s.includes("bottle")) return "bottle";
+	if (s.includes("jar")) return "jar";
+	if (s.includes("carton")) return "carton";
+	if (s.includes("tub")) return "tub";
+	if (s.includes("pouch")) return "pouch";
+	if (s.includes("bag")) return "bag";
+	if (s.includes("box")) return "box";
+	if (s.includes("loaf")) return "loaf";
 	return null;
 }
 
@@ -176,19 +234,58 @@ export default function AddItemScreen() {
 				const p = json.product;
 				const updates: Partial<FormData> = {};
 
-				if (p.product_name) updates.name = p.product_name;
+				// Name: try multiple fields in order
+				const name = p.product_name || p.product_name_en || p.generic_name_en || p.generic_name;
+				if (name) updates.name = name;
+
+				// Brand
 				if (p.brands) updates.brand = p.brands.split(",")[0].trim();
-				if (p.quantity) {
-					const parsed = parseOFFQuantity(p.quantity);
+
+				// Category and storage
+				const category = mapOFFCategory(p.pnns_groups_1 ?? "", p.pnns_groups_2 ?? "", p.categories_tags ?? []);
+				if (category) {
+					updates.category = category;
+					updates.storageIndex = storageFromCategory(category);
+				}
+
+				// Unit from packaging tags
+				const unit = unitFromPackaging(p.packaging_tags ?? []);
+				if (unit) updates.unit = unit;
+
+				// Per-unit size: prefer serving_size, fall back to quantity string
+				const sizeSource = p.serving_size || p.quantity;
+				if (sizeSource) {
+					const parsed = parseSizeString(sizeSource);
 					if (parsed) {
 						updates.size = parsed.size;
 						updates.sizeUnit = parsed.sizeUnit;
-						updates.unit = "bag";
 					}
 				}
 
-				const category = mapOFFCategory(p.categories_tags ?? []);
-				if (category) updates.category = category;
+				// Quantity: try multi-pack pattern first, then product_quantity / serving_size
+				if (p.quantity) {
+					const multiMatch = p.quantity.match(/^(\d+)\s*[x×]/i);
+					if (multiMatch) {
+						updates.quantity = multiMatch[1];
+					} else if (p.product_quantity && p.serving_size) {
+						const perUnit = parseSizeString(p.serving_size);
+						if (perUnit) {
+							const perUnitBase = toBaseUnit(perUnit.size, perUnit.sizeUnit);
+							if (perUnitBase && perUnitBase > 0) {
+								const count = Math.round(p.product_quantity / perUnitBase);
+								if (count > 1 && count <= 100) updates.quantity = String(count);
+							}
+						}
+					}
+				}
+
+				// Purchase date: default to today
+				const today = new Date();
+				updates.purchaseDate = [
+					today.getFullYear(),
+					String(today.getMonth() + 1).padStart(2, "0"),
+					String(today.getDate()).padStart(2, "0"),
+				].join("-");
 
 				setFormData((prev) => ({ ...prev, ...updates }));
 				setBarcodeStatus("found");
