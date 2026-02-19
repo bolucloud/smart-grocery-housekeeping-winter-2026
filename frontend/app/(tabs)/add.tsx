@@ -21,7 +21,7 @@ import {
 	StyledTextInput,
 } from "@/components/ui";
 import { CommonStyles } from "@/constants/styles";
-import { BorderRadius, Colors, FontSizes, FontWeights, Spacing } from "@/constants/theme";
+import { BorderRadius, Colors, Fonts, FontSizes, FontWeights, Spacing } from "@/constants/theme";
 
 // ─── Constants ───────────────────────────────────────────────
 
@@ -153,6 +153,8 @@ export default function AddItemScreen() {
 	const [scannerVisible, setScannerVisible] = useState(false);
 	const [isLookingUp, setIsLookingUp] = useState(false);
 	const [barcodeStatus, setBarcodeStatus] = useState<BarcodeStatus>(null);
+	const [rawApiResponse, setRawApiResponse] = useState<object | null>(null);
+	const [showDebug, setShowDebug] = useState(false);
 
 	const set = (key: keyof FormData, value: string | number) =>
 		setFormData((prev) => ({ ...prev, [key]: value }));
@@ -162,11 +164,13 @@ export default function AddItemScreen() {
 	const lookupBarcode = async (barcode: string) => {
 		setIsLookingUp(true);
 		setBarcodeStatus(null);
+		setRawApiResponse(null);
 		setFormData((prev) => ({ ...prev, barcode }));
 
 		try {
 			const res = await fetch(`https://world.openfoodfacts.org/api/v0/product/${barcode}.json`);
 			const json = await res.json();
+			setRawApiResponse(json);
 
 			if (json.status === 1 && json.product) {
 				const p = json.product;
@@ -317,6 +321,31 @@ export default function AddItemScreen() {
 								)}
 								{barcodeStatus === "error" && (
 									<Text style={styles.barcodeNotFound}>Lookup failed. Check your internet connection</Text>
+								)}
+
+								{/* Debug: raw API response */}
+								{rawApiResponse !== null && (
+									<View style={{ marginTop: Spacing.sm }}>
+										<Pressable
+											style={({ pressed }) => [styles.debugToggle, pressed && { opacity: 0.7 }]}
+											onPress={() => setShowDebug((prev) => !prev)}
+										>
+											<Text style={styles.debugToggleText}>API Response</Text>
+											<IconSymbol
+												name="chevron.right"
+												size={14}
+												color={Colors.blueText}
+												style={{ transform: [{ rotate: showDebug ? "-90deg" : "90deg" }] }}
+											/>
+										</Pressable>
+										{showDebug && (
+											<ScrollView style={styles.debugContent} nestedScrollEnabled>
+												<Text style={styles.debugText}>
+													{JSON.stringify(rawApiResponse, null, 2)}
+												</Text>
+											</ScrollView>
+										)}
+									</View>
 								)}
 							</View>
 
@@ -617,6 +646,32 @@ const styles = StyleSheet.create({
 	notesInput: {
 		height: 80,
 		textAlignVertical: "top",
+	},
+	debugToggle: {
+		backgroundColor: Colors.blueBg,
+		borderRadius: BorderRadius.md,
+		paddingVertical: Spacing.sm,
+		paddingHorizontal: Spacing.md,
+		flexDirection: "row",
+		alignItems: "center",
+		justifyContent: "space-between",
+	},
+	debugToggleText: {
+		fontSize: FontSizes.xs,
+		fontWeight: FontWeights.semibold,
+		color: Colors.blueText,
+	},
+	debugContent: {
+		maxHeight: 300,
+		backgroundColor: Colors.secondaryBg,
+		borderRadius: BorderRadius.md,
+		padding: Spacing.md,
+		marginTop: Spacing.xs,
+	},
+	debugText: {
+		fontFamily: Fonts?.mono,
+		fontSize: FontSizes.xs,
+		color: Colors.textSecondary,
 	},
 	warningBanner: {
 		backgroundColor: Colors.amberBg,
