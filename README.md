@@ -15,3 +15,4 @@
 3. Test Branches: These branches are made for any automation test fixures. Use the prefix `test/{Test Name}-`. 
 
 ## Initializing the Application
+
