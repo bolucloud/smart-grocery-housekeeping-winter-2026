@@ -79,7 +79,7 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt && \
     pip install "fastapi[standard]"
 
-COPY ./app /code/app
+COPY backend/app /code/app
 
 
 CMD ["fastapi", "run", "app/main.py", "--port", "8000"]
