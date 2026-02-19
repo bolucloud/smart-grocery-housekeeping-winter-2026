@@ -147,18 +147,19 @@ function storageFromCategory(category: string): number {
 	return 1;
 }
 
-// infer package unit from packaging_tags (e.g. ["en:bottle", "en:glass"])
-function unitFromPackaging(tags: string[]): string | null {
-	const s = tags.join(" ").toLowerCase();
-	if (s.includes("can")) return "can";
-	if (s.includes("bottle")) return "bottle";
-	if (s.includes("jar")) return "jar";
-	if (s.includes("carton")) return "carton";
-	if (s.includes("tub")) return "tub";
-	if (s.includes("pouch")) return "pouch";
-	if (s.includes("bag")) return "bag";
-	if (s.includes("box")) return "box";
-	if (s.includes("loaf")) return "loaf";
+// Infer package unit from packaging_tags, packaging text, and quantity string
+function unitFromPackaging(tags: string[], packagingText?: string, quantityText?: string): string | null {
+	const s = [tags.join(" "), packagingText ?? "", quantityText ?? ""].join(" ").toLowerCase();
+	if (s.includes("can") || s.includes("cans")) return "can";
+	if (s.includes("bottle") || s.includes("bottles")) return "bottle";
+	if (s.includes("jar") || s.includes("jars")) return "jar";
+	if (s.includes("carton") || s.includes("cartons")) return "carton";
+	if (s.includes("tub") || s.includes("tubs")) return "tub";
+	if (s.includes("pouch") || s.includes("pouches")) return "pouch";
+	if (s.includes("loaf") || s.includes("loaves")) return "loaf";
+	if (s.includes("bag") || s.includes("bags")) return "bag";
+	if (s.includes("box") || s.includes("boxes")) return "box";
+	if (s.includes("pack") || s.includes("packs")) return "pack";
 	return null;
 }
 
@@ -223,7 +224,7 @@ export default function AddItemScreen() {
 		setIsLookingUp(true);
 		setBarcodeStatus(null);
 		setRawApiResponse(null);
-		setFormData((prev) => ({ ...prev, barcode }));
+		setFormData({ ...DEFAULT_FORM, barcode });
 
 		try {
 			const res = await fetch(`https://world.openfoodfacts.org/api/v0/product/${barcode}.json`);
@@ -248,8 +249,8 @@ export default function AddItemScreen() {
 					updates.storageIndex = storageFromCategory(category);
 				}
 
-				// Unit from packaging tags
-				const unit = unitFromPackaging(p.packaging_tags ?? []);
+				// Unit from packaging tags, packaging text, and quantity string
+				const unit = unitFromPackaging(p.packaging_tags ?? [], p.packaging, p.quantity);
 				if (unit) updates.unit = unit;
 
 				// Per-unit size: prefer serving_size, fall back to quantity string
