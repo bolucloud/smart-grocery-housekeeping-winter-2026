@@ -102,7 +102,7 @@ jobs:
   tests:
     name: Run Python tests
     runs-on: self-hosted
-    # if: github.event_name == 'pull_request'
+    if: github.event_name == 'pull_request'
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
