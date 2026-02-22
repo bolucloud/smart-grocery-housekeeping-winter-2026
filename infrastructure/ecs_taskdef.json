@@ -1,6 +1,6 @@
 [
     {
-        "name": "${var.app_name)-container}",
+        "name": "${var.app_name}-container",
         "image": "${aws_ecr_repository.smart_grocery_housekeeping_repository.repository_url}:latest",
         "essential": true,
         "portMappings": [

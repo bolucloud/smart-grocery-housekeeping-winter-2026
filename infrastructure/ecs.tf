@@ -132,6 +132,7 @@ resource "aws_ecs_task_definition" "backend_task_def" {
     requires_compatibilities = [ "FARGATE" ]
     cpu = var.cpu
     memory = var.memory
+    revision = null
     execution_role_arn = aws_iam_role.grocery_task_execution_role.arn
     task_role_arn = aws_iam_role.grocery_task_role.arn
     container_definitions = jsonencode([
@@ -141,6 +142,13 @@ resource "aws_ecs_task_definition" "backend_task_def" {
             "essential": true,
             "environment": [],
             "secrets": [],
+            "portMappings": [
+                {
+                    "containerPort": 8000,
+                    "hostPort": 8000,
+                    "protocol": "tcp"
+                }
+            ],
             "logConfiguration": {
                 "logDriver": "awslogs",
                 "options": {
@@ -148,20 +156,12 @@ resource "aws_ecs_task_definition" "backend_task_def" {
                     "awslogs-region": "us-east-1",
                     "awslogs-stream-prefix": "ecs"
                 }
-            },
-            "healthCheck": {
-                "command": [
-                    "CMD-SHELL",
-                    "python -c \"import requests; requests.get('http://localhost:${var.ecs_container_port}/health', timeout=2)\" || exit 1"
-                ],
-                "interval": 30,
-                "timeout": 5,
-                "retries": 3,
-                "startPeriod": 30
             }
         }
     ])
-
+    lifecycle {
+      create_before_destroy = true
+    }
     runtime_platform {
       operating_system_family = "LINUX"
       cpu_architecture = "X86_64"
@@ -180,6 +180,12 @@ resource "aws_ecs_service" "grocery_backend_service" {
         subnets          = data.aws_subnets.smart_grocery_public_subnets.ids
         security_groups  = [aws_security_group.smart_grocery_ecs_sg.id]
         assign_public_ip = true
+    }
+
+    load_balancer {
+      target_group_arn = aws_lb_target_group.smart_grocery_target_group.arn
+      container_name   = "${var.app_name}-container"
+      container_port   = var.ecs_container_port
     }
 
     lifecycle {
@@ -235,7 +241,7 @@ resource "aws_lb" "smart_grocery_alb" {
 
 resource "aws_lb_target_group" "smart_grocery_target_group" {
   name        = "${var.app_name}-tg"
-  port        = var.ecs_container_port
+  port        = 8000
   protocol    = "HTTP"
   vpc_id      = data.aws_vpc.smart_grocery_vpc.id
   target_type = "ip"
@@ -244,10 +250,12 @@ resource "aws_lb_target_group" "smart_grocery_target_group" {
     enabled             = true
     healthy_threshold   = 2
     unhealthy_threshold = 2
-    timeout             = 5
-    interval            = 30
-    path                = "/health"
-    port                = "traffic-port"
+    timeout             = 10
+    interval            = 60
+    path                = "/health/"
+    port                = "8000"
+    protocol = "HTTP"
+    matcher             = "200-399"
   }
 
 #   stickiness {
