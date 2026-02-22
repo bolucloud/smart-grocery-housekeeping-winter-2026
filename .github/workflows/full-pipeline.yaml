@@ -126,7 +126,7 @@ jobs:
 
   build-and-deploy:
     name: Build Backend Image and Deploy
-    #if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: self-hosted
     needs: [ check-issue-link, terraform, tests ]
     steps:
@@ -151,19 +151,6 @@ jobs:
       id: login-ecr-bash
       run: |
         aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 480428003157.dkr.ecr.us-east-1.amazonaws.com
-
-    # - name: Login to AWS ECR
-    #   id: login-ecr
-    #   uses: aws-actions/amazon-ecr-login@v2
-    #   with:
-    #     mask-password: true
-
-
-
-
-
-    # - name: Setup Docker Buildx
-    #   uses: docker/setup-buildx-action@v3
 
     - name: Build docker image
       id: build-image
@@ -195,4 +182,3 @@ jobs:
           --service ${ECS_SERVICE} \
           --force-new-deployment \
           --region ${AWS_REGION}
-        # echo "do nothing for now....uncomment this step when service is up and running in ecs"
