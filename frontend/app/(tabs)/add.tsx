@@ -1,7 +1,9 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
 	ActivityIndicator,
 	Alert,
+	KeyboardAvoidingView,
+	Modal,
 	Platform,
 	Pressable,
 	ScrollView,
@@ -182,6 +184,8 @@ type FormData = {
 	notes: string;
 };
 
+type SessionItem = FormData & { id: string };
+
 type BarcodeStatus = "found" | "not-found" | "error" | null;
 
 const DEFAULT_FORM: FormData = {
@@ -201,10 +205,32 @@ const DEFAULT_FORM: FormData = {
 	notes: "",
 };
 
+// ─── Display helpers ─────────────────────────────────────────
+
+function formatItemSubtitle(item: FormData): string {
+	const parts: string[] = [];
+	if (item.brand) parts.push(item.brand);
+	parts.push(`${item.quantity} ${item.unit}`);
+	return parts.join(" · ");
+}
+
+function formatDate(iso: string): string {
+	if (!iso) return "—";
+	const [y, m, d] = iso.split("-").map(Number);
+	return new Date(y, m - 1, d).toLocaleDateString("en-US", {
+		month: "short",
+		day: "numeric",
+		year: "numeric",
+	});
+}
+
 // ─── Screen ──────────────────────────────────────────────────
 
 export default function AddItemScreen() {
 	const insets = useSafeAreaInsets();
+	const scrollRef = useRef<ScrollView>(null);
+
+	// Form
 	const [formData, setFormData] = useState<FormData>(DEFAULT_FORM);
 	const [warnings, setWarnings] = useState<string[]>([]);
 	const [showToast, setShowToast] = useState(false);
@@ -214,6 +240,26 @@ export default function AddItemScreen() {
 	const [barcodeStatus, setBarcodeStatus] = useState<BarcodeStatus>(null);
 	const [rawApiResponse, setRawApiResponse] = useState<object | null>(null);
 	const [showDebug, setShowDebug] = useState(false);
+
+	// Session
+	const [sessionItems, setSessionItems] = useState<SessionItem[]>([]);
+	const [formCollapsed, setFormCollapsed] = useState(false);
+	const [expandedItemId, setExpandedItemId] = useState<string | null>(null);
+	const [editingItemId, setEditingItemId] = useState<string | null>(null);
+	const [stashedForm, setStashedForm] = useState<FormData | null>(null);
+
+	// Save modal
+	const [showSaveModal, setShowSaveModal] = useState(false);
+	const [runStoreName, setRunStoreName] = useState("");
+	const [runDate, setRunDate] = useState(() => {
+		const t = new Date();
+		return [t.getFullYear(), String(t.getMonth() + 1).padStart(2, "0"), String(t.getDate()).padStart(2, "0")].join("-");
+	});
+
+	// Auto-expand form when session is emptied
+	useEffect(() => {
+		if (sessionItems.length === 0) setFormCollapsed(false);
+	}, [sessionItems.length]);
 
 	const set = (key: keyof FormData, value: string | number) =>
 		setFormData((prev) => ({ ...prev, [key]: value }));
@@ -332,6 +378,57 @@ export default function AddItemScreen() {
 		return found;
 	};
 
+	// ── Session handlers ──────────────────────────
+
+	const handleDeleteItem = (id: string) => {
+		if (editingItemId === id) {
+			setFormData(stashedForm ?? DEFAULT_FORM);
+			setStashedForm(null);
+			setEditingItemId(null);
+			setWarnings([]);
+			setBarcodeStatus(null);
+		}
+		setSessionItems((prev) => prev.filter((item) => item.id !== id));
+		if (expandedItemId === id) setExpandedItemId(null);
+	};
+
+	const handleStartEdit = (item: SessionItem) => {
+		const hasUnsavedData = formData.name.trim() !== "" || formData.bestBeforeDate !== "";
+		setStashedForm(hasUnsavedData ? formData : null);
+		const { id, ...itemData } = item;
+		setFormData(itemData);
+		setEditingItemId(id);
+		setExpandedItemId(id);
+		setFormCollapsed(false);
+		setWarnings([]);
+		setBarcodeStatus(null);
+		setShowAdvanced(false);
+		setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 100);
+	};
+
+	const handleCancelEdit = () => {
+		setFormData(stashedForm ?? DEFAULT_FORM);
+		setStashedForm(null);
+		setEditingItemId(null);
+		setExpandedItemId(null);
+		setFormCollapsed(true);
+		setWarnings([]);
+		setBarcodeStatus(null);
+	};
+
+	const handleSaveRun = () => {
+		// TODO: wire to API
+		setSessionItems([]);
+		setShowSaveModal(false);
+		setRunStoreName("");
+	};
+
+	const handleSaveItemsOnly = () => {
+		// TODO: wire to API
+		setSessionItems([]);
+		setShowSaveModal(false);
+	};
+
 	// ── Submit ────────────────────────────────────
 
 	const handleSubmit = () => {
@@ -344,16 +441,32 @@ export default function AddItemScreen() {
 		setWarnings(found);
 		if (found.some((w) => w.startsWith("Quantity") || w.startsWith("Best before date is before"))) return;
 
-		// TODO: wire to GroceryContext addItem() once context is built
-		setFormData(DEFAULT_FORM);
+		if (editingItemId) {
+			setSessionItems((prev) =>
+				prev.map((item) => (item.id === editingItemId ? { ...formData, id: editingItemId } : item))
+			);
+			setEditingItemId(null);
+			setExpandedItemId(null);
+			setFormData(stashedForm ?? DEFAULT_FORM);
+			setStashedForm(null);
+			setFormCollapsed(true);
+		} else {
+			const newItem: SessionItem = { ...formData, id: Date.now().toString() };
+			setSessionItems((prev) => [...prev, newItem]);
+			setFormData(DEFAULT_FORM);
+			setFormCollapsed(true);
+			setShowToast(true);
+			setTimeout(() => setShowToast(false), 3000);
+		}
+
 		setWarnings([]);
 		setBarcodeStatus(null);
 		setShowAdvanced(false);
-		setShowToast(true);
-		setTimeout(() => setShowToast(false), 3000);
 	};
 
 	// ── Render ────────────────────────────────────
+
+	const hasSession = sessionItems.length > 0;
 
 	return (
 		<SafeAreaView style={CommonStyles.screen} edges={["top"]}>
@@ -369,17 +482,113 @@ export default function AddItemScreen() {
 			</View>
 
 			<ScrollView
+				ref={scrollRef}
 				automaticallyAdjustKeyboardInsets
 				contentContainerStyle={[CommonStyles.screenContent, styles.scrollContent]}
 				keyboardShouldPersistTaps="handled"
 				style={{ flex: 1 }}
 			>
-					{/* Item details form */}
-					<Card>
+				{/* Session list */}
+				{hasSession && (
+					<View style={styles.sessionSection}>
+						<Text style={styles.sessionHeader}>
+							This Session{"  ·  "}{sessionItems.length} {sessionItems.length === 1 ? "item" : "items"}
+						</Text>
+						{sessionItems.map((item) => {
+							const isExpanded = expandedItemId === item.id;
+							const isEditing = editingItemId === item.id;
+							return (
+								<Card
+									key={item.id}
+									onPress={isEditing ? undefined : () => setExpandedItemId(isExpanded ? null : item.id)}
+								>
+									{/* Row */}
+									<View style={styles.sessionRow}>
+										<View style={styles.sessionRowLeft}>
+											{(isExpanded || isEditing) && <View style={styles.dot} />}
+											<View style={{ flex: 1 }}>
+												<View style={styles.sessionNameRow}>
+													<Text style={styles.sessionItemName} numberOfLines={1}>
+														{item.name}
+													</Text>
+													{isEditing && (
+														<Text style={styles.editingLabel}>editing</Text>
+													)}
+												</View>
+												<Text style={styles.sessionItemSubtitle} numberOfLines={1}>
+													{formatItemSubtitle(item)}
+												</Text>
+											</View>
+										</View>
+										<Pressable
+											style={({ pressed }) => [styles.deleteButton, pressed && { opacity: 0.6 }]}
+											onPress={() => handleDeleteItem(item.id)}
+											hitSlop={8}
+										>
+											<IconSymbol name="trash" size={16} color={Colors.textSecondary} />
+										</Pressable>
+									</View>
+
+									{/* Expanded detail */}
+									{isExpanded && !isEditing && (
+										<View style={styles.itemDetail}>
+											<View style={styles.itemDetailDivider} />
+											<View style={styles.detailRow}>
+												<Text style={styles.detailLabel}>Category</Text>
+												<Text style={styles.detailValue}>{item.category}</Text>
+											</View>
+											<View style={styles.detailRow}>
+												<Text style={styles.detailLabel}>Storage</Text>
+												<Text style={styles.detailValue}>{STORAGE_LOCATIONS[item.storageIndex]}</Text>
+											</View>
+											{!!item.size && (
+												<View style={styles.detailRow}>
+													<Text style={styles.detailLabel}>Size</Text>
+													<Text style={styles.detailValue}>{item.size} {item.sizeUnit}</Text>
+												</View>
+											)}
+											{!!item.bestBeforeDate && (
+												<View style={styles.detailRow}>
+													<Text style={styles.detailLabel}>Best before</Text>
+													<Text style={styles.detailValue}>{formatDate(item.bestBeforeDate)}</Text>
+												</View>
+											)}
+											<View style={{ marginTop: Spacing.md }}>
+												<Button title="Update Item" onPress={() => handleStartEdit(item)} fullWidth />
+											</View>
+										</View>
+									)}
+								</Card>
+							);
+						})}
+					</View>
+				)}
+
+				{/* Item details form */}
+				<Card>
+					{hasSession ? (
+						<Pressable
+							style={styles.formHeader}
+							onPress={() => setFormCollapsed((prev) => !prev)}
+						>
+							<Text style={styles.formTitle}>
+								{editingItemId
+									? `Editing: ${formData.name || "item"}`
+									: "Item Details"}
+							</Text>
+							<IconSymbol
+								name="chevron.right"
+								size={14}
+								color={Colors.textSecondary}
+								style={{ transform: [{ rotate: formCollapsed ? "90deg" : "-90deg" }] }}
+							/>
+						</Pressable>
+					) : (
 						<Text style={styles.formTitle}>Item Details</Text>
+					)}
 
+					{!formCollapsed && (
 						<View style={styles.fields}>
-
 
 							{/* Barcode */}
 							<View>
@@ -638,9 +847,38 @@ export default function AddItemScreen() {
 								</View>
 							)}
 
-							<Button title="Add to Inventory" onPress={handleSubmit} fullWidth size="lg" />
+							{/* Submit / Cancel row */}
+							{editingItemId ? (
+								<View style={styles.editButtonRow}>
+									<Button
+										title="Cancel"
+										variant="secondary"
+										onPress={handleCancelEdit}
+										style={{ flex: 1 }}
+									/>
+									<Button
+										title="Update Item"
+										onPress={handleSubmit}
+										style={{ flex: 2 }}
+									/>
+								</View>
+							) : (
+								<Button title="Add to Inventory" onPress={handleSubmit} fullWidth size="lg" />
+							)}
 						</View>
-					</Card>
+					)}
+				</Card>
+
+				{/* Save as Grocery Run */}
+				{hasSession && (
+					<Button
+						title="Save as Grocery Run..."
+						variant="secondary"
+						onPress={() => setShowSaveModal(true)}
+						fullWidth
+						size="lg"
+					/>
+				)}
 			</ScrollView>
 
 			{/* Barcode scanner modal */}
@@ -652,6 +890,49 @@ export default function AddItemScreen() {
 				}}
 				onClose={() => setScannerVisible(false)}
 			/>
+
+			{/* Save Run modal */}
+			<Modal
+				visible={showSaveModal}
+				transparent
+				animationType="slide"
+				onRequestClose={() => setShowSaveModal(false)}
+			>
+				<KeyboardAvoidingView
+					behavior={Platform.OS === "ios" ? "padding" : "height"}
+					style={styles.modalOverlay}
+				>
+					<Pressable style={styles.modalBackdrop} onPress={() => setShowSaveModal(false)} />
+					<View style={[styles.modalSheet, { paddingBottom: insets.bottom + Spacing.base }]}>
+						<View style={styles.modalHandle} />
+						<Text style={styles.modalTitle}>Save as Grocery Run</Text>
+						<View style={styles.modalFields}>
+							<StyledTextInput
+								label="Store Name"
+								placeholder="e.g. Costco"
+								value={runStoreName}
+								onChangeText={setRunStoreName}
+							/>
+							<DateInput
+								label="Date"
+								value={runDate}
+								onChange={setRunDate}
+								minimumDate={new Date(2000, 0, 1)}
+								maximumDate={new Date()}
+							/>
+						</View>
+						<View style={styles.modalButtons}>
+							<Button title="Save Run" onPress={handleSaveRun} fullWidth size="lg" />
+							<Button
+								title="Save items without run"
+								variant="secondary"
+								onPress={handleSaveItemsOnly}
+								fullWidth
+							/>
+						</View>
+					</View>
+				</KeyboardAvoidingView>
+			</Modal>
 		</SafeAreaView>
 	);
 }
@@ -679,11 +960,91 @@ const styles = StyleSheet.create({
 		fontSize: FontSizes.sm,
 		fontWeight: FontWeights.medium,
 	},
+	// Session list
+	sessionSection: {
+		gap: Spacing.sm,
+	},
+	sessionHeader: {
+		fontSize: FontSizes.sm,
+		fontWeight: FontWeights.semibold,
+		color: Colors.textSecondary,
+	},
+	sessionRow: {
+		flexDirection: "row",
+		alignItems: "center",
+		gap: Spacing.sm,
+	},
+	sessionRowLeft: {
+		flex: 1,
+		flexDirection: "row",
+		alignItems: "center",
+		gap: Spacing.sm,
+	},
+	dot: {
+		width: 6,
+		height: 6,
+		borderRadius: 3,
+		backgroundColor: Colors.primary,
+	},
+	sessionNameRow: {
+		flexDirection: "row",
+		alignItems: "center",
+		gap: Spacing.sm,
+	},
+	sessionItemName: {
+		fontSize: FontSizes.sm,
+		fontWeight: FontWeights.semibold,
+		color: Colors.textPrimary,
+		flex: 1,
+	},
+	editingLabel: {
+		fontSize: FontSizes.xs,
+		color: Colors.textSecondary,
+	},
+	sessionItemSubtitle: {
+		fontSize: FontSizes.xs,
+		color: Colors.textSecondary,
+		marginTop: 2,
+	},
+	deleteButton: {
+		padding: Spacing.xs,
+	},
+	itemDetail: {
+		marginTop: Spacing.md,
+	},
+	itemDetailDivider: {
+		height: StyleSheet.hairlineWidth,
+		backgroundColor: Colors.border,
+		marginBottom: Spacing.md,
+	},
+	detailRow: {
+		flexDirection: "row",
+		justifyContent: "space-between",
+		paddingVertical: Spacing.xs,
+	},
+	detailLabel: {
+		fontSize: FontSizes.sm,
+		color: Colors.textSecondary,
+	},
+	detailValue: {
+		fontSize: FontSizes.sm,
+		color: Colors.textPrimary,
+		fontWeight: FontWeights.medium,
+	},
+	// Form
+	formHeader: {
+		flexDirection: "row",
+		alignItems: "center",
+		justifyContent: "space-between",
+	},
 	formTitle: {
 		fontSize: FontSizes.base,
 		fontWeight: FontWeights.semibold,
 		color: Colors.textPrimary,
-		marginBottom: Spacing.base,
+	},
+	editButtonRow: {
+		flexDirection: "row",
+		gap: Spacing.sm,
 	},
 	fields: {
 		gap: Spacing.base,
@@ -784,5 +1145,42 @@ const styles = StyleSheet.create({
 	warningText: {
 		fontSize: FontSizes.xs,
 		color: Colors.amberTextDark,
+	},
+	// Save modal
+	modalOverlay: {
+		flex: 1,
+		justifyContent: "flex-end",
+	},
+	modalBackdrop: {
+		...StyleSheet.absoluteFillObject,
+		backgroundColor: "rgba(0,0,0,0.4)",
+	},
+	modalSheet: {
+		backgroundColor: Colors.surface,
+		borderTopLeftRadius: 16,
+		borderTopRightRadius: 16,
+		paddingTop: Spacing.md,
+		paddingHorizontal: Spacing.base,
+	},
+	modalHandle: {
+		width: 36,
+		height: 4,
+		borderRadius: 2,
+		backgroundColor: Colors.border,
+		alignSelf: "center",
+		marginBottom: Spacing.base,
+	},
+	modalTitle: {
+		fontSize: FontSizes.lg,
+		fontWeight: FontWeights.semibold,
+		color: Colors.textPrimary,
+		marginBottom: Spacing.base,
+	},
+	modalFields: {
+		gap: Spacing.base,
+		marginBottom: Spacing.base,
+	},
+	modalButtons: {
+		gap: Spacing.sm,
 	},
 });
