@@ -88,4 +88,9 @@ def delete_inventory_batch(
     user_id: int = Depends(get_current_user_id),
     inventory_batch_dal: InventoryBatchDAL = Depends(get_inventory_batch_dal)
 ):
-    inventory_batch_dal.delete_by_id(user_id=user_id, inventory_batch_id=inventory_batch_id)
+    deleted = inventory_batch_dal.delete_by_id(user_id=user_id, inventory_batch_id=inventory_batch_id)
+    if not deleted:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"InventoryBatch {inventory_batch_id} not found"
+        )

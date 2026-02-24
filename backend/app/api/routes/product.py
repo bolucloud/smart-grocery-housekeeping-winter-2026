@@ -77,10 +77,15 @@ def delete_product(
     user_id: int = Depends(get_current_user_id),
     product_dal: ProductDAL = Depends(get_product_dal)
 ):
-    product_dal.delete_by_id(user_id=user_id, product_id=product_id)
+    deleted = product_dal.delete_by_id(user_id=user_id, product_id=product_id)
+    if not deleted:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Product {product_id} not found"
+        )
 
 @router.get("/by-barcode/{barcode}", response_model=ProductRead)
-def get_product(
+def get_product_by_barcode(
     barcode: str,
     user_id: int = Depends(get_current_user_id),
     product_dal: ProductDAL = Depends(get_product_dal)

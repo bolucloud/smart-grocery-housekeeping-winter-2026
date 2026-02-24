@@ -21,7 +21,3 @@ def get_product_dal(db: Session = Depends(get_db)) -> ProductDAL:
 
 def get_inventory_batch_dal(db: Session = Depends(get_db)) -> InventoryBatchDAL:
     return InventoryBatchDAL(db)
-
-
-# def get_category_dal(db: Session = Depends(get_db)) -> CategoryDAL:
-#     return CategoryDAL(db)

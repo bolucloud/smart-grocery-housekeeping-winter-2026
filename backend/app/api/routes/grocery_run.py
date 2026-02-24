@@ -70,4 +70,9 @@ def delete_grocery_run(
     user_id: int = Depends(get_current_user_id),
     grocery_run_dal: GroceryRunDAL = Depends(get_grocery_run_dal)
 ):
-    grocery_run_dal.delete_by_id(user_id=user_id, grocery_run_id=grocery_run_id)
+    deleted = grocery_run_dal.delete_by_id(user_id=user_id, grocery_run_id=grocery_run_id)
+    if not deleted:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Grocery run {grocery_run_id} not found"
+        )
