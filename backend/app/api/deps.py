@@ -94,3 +94,8 @@ def get_current_user(
         )
     return user
         
+
+def get_current_user_id(
+    user: User = Depends(get_current_user)
+) -> int:
+    return user.user_id

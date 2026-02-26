@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, Response, status
 from sqlalchemy.exc import IntegrityError
 
 from app.models.user import User
-from app.schemas.user import UserPrivate
+from app.schemas.user import UserReadPrivate
 
 from app.api.deps import get_current_user, get_firebase_claims
 from app.schemas.firebase import FirebaseClaims
@@ -11,12 +11,12 @@ from app.data_access.deps import get_user_dal
 
 router = APIRouter()
 
-@router.get("/profile", response_model=UserPrivate)
+@router.get("/profile", response_model=UserReadPrivate)
 def get_private_profile(user: User = Depends(get_current_user)):
     return user
 
 
-@router.post("/", response_model=UserPrivate)
+@router.post("/", response_model=UserReadPrivate)
 def create_user(
     response: Response,
     claims: FirebaseClaims = Depends(get_firebase_claims),

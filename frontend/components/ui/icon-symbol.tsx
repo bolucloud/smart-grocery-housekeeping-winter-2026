@@ -53,6 +53,8 @@ const MAPPING = {
 	globe: "language",
 	"lightbulb.fill": "lightbulb",
 	"arrow.up.right": "open-in-new",
+	"barcode.viewfinder": "qr-code-scanner",
+	calendar: "calendar-month",
 } as IconMapping;
 
 /**

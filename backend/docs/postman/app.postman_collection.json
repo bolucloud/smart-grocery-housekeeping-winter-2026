@@ -12,13 +12,8 @@
         "header": [],
         "url": {
           "raw": "{{base_url}}/user/profile",
-          "host": [
-            "{{base_url}}"
-          ],
-          "path": [
-            "user",
-            "profile"
-          ]
+          "host": ["{{base_url}}"],
+          "path": ["user", "profile"]
         }
       },
       "response": []
@@ -30,12 +25,8 @@
         "header": [],
         "url": {
           "raw": "{{base_url}}/user",
-          "host": [
-            "{{base_url}}"
-          ],
-          "path": [
-            "user"
-          ]
+          "host": ["{{base_url}}"],
+          "path": ["user"]
         }
       },
       "response": []
@@ -47,13 +38,8 @@
         "header": [],
         "url": {
           "raw": "{{base_url}}/user/profile",
-          "host": [
-            "{{base_url}}"
-          ],
-          "path": [
-            "user",
-            "profile"
-          ]
+          "host": ["{{base_url}}"],
+          "path": ["user", "profile"]
         }
       },
       "response": []
@@ -64,61 +50,375 @@
         "auth": {
           "type": "bearer",
           "bearer": [
-            {
-              "key": "token",
-              "value": "{{bad_firebase_id_token}}",
-              "type": "string"
-            }
+            { "key": "token", "value": "{{bad_firebase_id_token}}", "type": "string" }
           ]
         },
         "method": "GET",
         "header": [],
         "url": {
           "raw": "{{base_url}}/user/profile",
-          "host": [
-            "{{base_url}}"
-          ],
-          "path": [
-            "user",
-            "profile"
-          ]
+          "host": ["{{base_url}}"],
+          "path": ["user", "profile"]
         }
       },
       "response": []
+    },
+    {
+      "name": "Grocery runs",
+      "item": [
+        {
+          "name": "List grocery runs",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/grocery-runs?offset={{offset}}&limit={{limit}}",
+              "host": ["{{base_url}}"],
+              "path": ["grocery-runs"],
+              "query": [
+                { "key": "offset", "value": "{{offset}}" },
+                { "key": "limit", "value": "{{limit}}" }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create grocery run",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "let body;",
+                  "try { body = pm.response.json(); } catch (e) { body = null; }",
+                  "if (body && body.id != null) {",
+                  "  pm.environment.set('grocery_run_id', String(body.id));",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"trip_date\": \"{{grocery_run_trip_date}}\",\n  \"store_name\": \"{{grocery_run_store_name}}\",\n  \"total_cost\": {{grocery_run_total_cost}},\n  \"notes\": \"{{grocery_run_notes}}\",\n  \"archived\": false\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/grocery-runs",
+              "host": ["{{base_url}}"],
+              "path": ["grocery-runs"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get grocery run by id",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/grocery-runs/{{grocery_run_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["grocery-runs", "{{grocery_run_id}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Patch grocery run by id",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"store_name\": \"{{grocery_run_store_name}} (updated)\",\n  \"notes\": \"{{grocery_run_notes}} (updated)\",\n  \"archived\": false\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/grocery-runs/{{grocery_run_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["grocery-runs", "{{grocery_run_id}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete grocery run by id",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/grocery-runs/{{grocery_run_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["grocery-runs", "{{grocery_run_id}}"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Products",
+      "item": [
+        {
+          "name": "List products",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/products?offset={{offset}}&limit={{limit}}",
+              "host": ["{{base_url}}"],
+              "path": ["products"],
+              "query": [
+                { "key": "offset", "value": "{{offset}}" },
+                { "key": "limit", "value": "{{limit}}" }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create product",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "let body;",
+                  "try { body = pm.response.json(); } catch (e) { body = null; }",
+                  "if (body && body.id != null) {",
+                  "  pm.environment.set('product_id', String(body.id));",
+                  "}",
+                  "if (body && body.barcode) {",
+                  "  pm.environment.set('product_barcode', String(body.barcode));",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"category_id\": {{product_category_id}},\n  \"name\": \"{{product_name}}\",\n  \"brand\": \"{{product_brand}}\",\n  \"size\": {{product_size}},\n  \"unit\": \"{{product_unit}}\",\n  \"type\": \"{{product_type}}\",\n  \"barcode\": \"{{product_barcode}}\",\n  \"default_storage_location\": \"{{product_default_storage_location}}\",\n  \"shelf_life_days\": {{product_shelf_life_days}}\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/products",
+              "host": ["{{base_url}}"],
+              "path": ["products"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get product by id",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/products/{{product_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["products", "{{product_id}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Patch product by id",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"{{product_name}} (updated)\",\n  \"brand\": \"{{product_brand}}\",\n  \"size\": {{product_size}},\n  \"unit\": \"{{product_unit}}\",\n  \"barcode\": \"{{product_barcode}}\",\n  \"shelf_life_days\": {{product_shelf_life_days}}\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/products/{{product_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["products", "{{product_id}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete product by id",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/products/{{product_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["products", "{{product_id}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get product by barcode",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/products/by-barcode/{{product_barcode}}",
+              "host": ["{{base_url}}"],
+              "path": ["products", "by-barcode", "{{product_barcode}}"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Inventory batches",
+      "item": [
+        {
+          "name": "List inventory batches",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/inventory-batches?offset={{offset}}&limit={{limit}}",
+              "host": ["{{base_url}}"],
+              "path": ["inventory-batches"],
+              "query": [
+                { "key": "offset", "value": "{{offset}}" },
+                { "key": "limit", "value": "{{limit}}" }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "List inventory batches (by storage_location)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/inventory-batches?offset={{offset}}&limit={{limit}}&storage_location={{storage_location}}",
+              "host": ["{{base_url}}"],
+              "path": ["inventory-batches"],
+              "query": [
+                { "key": "offset", "value": "{{offset}}" },
+                { "key": "limit", "value": "{{limit}}" },
+                { "key": "storage_location", "value": "{{storage_location}}" }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "List inventory batches (by grocery_run_id)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/inventory-batches?offset={{offset}}&limit={{limit}}&grocery_run_id={{grocery_run_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["inventory-batches"],
+              "query": [
+                { "key": "offset", "value": "{{offset}}" },
+                { "key": "limit", "value": "{{limit}}" },
+                { "key": "grocery_run_id", "value": "{{grocery_run_id}}" }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create inventory batch",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "let body;",
+                  "try { body = pm.response.json(); } catch (e) { body = null; }",
+                  "if (body && body.id != null) {",
+                  "  pm.environment.set('inventory_batch_id', String(body.id));",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"grocery_run_id\": {{grocery_run_id}},\n  \"product_id\": {{product_id}},\n  \"quantity_added\": {{inventory_batch_quantity_added}},\n  \"storage_location\": \"{{storage_location}}\",\n  \"expired_at\": \"{{inventory_batch_expired_at}}\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/inventory-batches",
+              "host": ["{{base_url}}"],
+              "path": ["inventory-batches"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get inventory batch by id",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/inventory-batches/{{inventory_batch_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["inventory-batches", "{{inventory_batch_id}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Patch inventory batch by id",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"quantity_used\": {{inventory_batch_quantity_used}},\n  \"quantity_spoiled\": {{inventory_batch_quantity_spoiled}},\n  \"quantity_disposed\": {{inventory_batch_quantity_disposed}},\n  \"completed_at\": {{inventory_batch_completed_at}}\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/inventory-batches/{{inventory_batch_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["inventory-batches", "{{inventory_batch_id}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete inventory batch by id",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/inventory-batches/{{inventory_batch_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["inventory-batches", "{{inventory_batch_id}}"]
+            }
+          },
+          "response": []
+        }
+      ]
     }
   ],
   "auth": {
     "type": "bearer",
-    "bearer": [
-      {
-        "key": "token",
-        "value": "{{firebase_id_token}}",
-        "type": "string"
-      }
-    ]
+    "bearer": [{ "key": "token", "value": "{{firebase_id_token}}", "type": "string" }]
   },
   "event": [
-    {
-      "listen": "prerequest",
-      "script": {
-        "type": "text/javascript",
-        "packages": {},
-        "requests": {},
-        "exec": [
-          ""
-        ]
-      }
-    },
-    {
-      "listen": "test",
-      "script": {
-        "type": "text/javascript",
-        "packages": {},
-        "requests": {},
-        "exec": [
-          ""
-        ]
-      }
-    }
+    { "listen": "prerequest", "script": { "type": "text/javascript", "packages": {}, "requests": {}, "exec": [""] } },
+    { "listen": "test", "script": { "type": "text/javascript", "packages": {}, "requests": {}, "exec": [""] } }
   ]
 }
