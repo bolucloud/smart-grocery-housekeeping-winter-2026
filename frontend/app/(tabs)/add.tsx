@@ -482,7 +482,7 @@ export default function AddItemScreen() {
 			)}
 
 			<View style={CommonStyles.screenHeader}>
-				<Text style={CommonStyles.screenTitle}>Add Item</Text>
+				<Text style={CommonStyles.screenTitle}>Log Items</Text>
 			</View>
 
 			<ScrollView
@@ -502,7 +502,7 @@ export default function AddItemScreen() {
 							<Text style={styles.formTitle}>
 								{editingItemId
 									? `Editing: ${formData.name || "item"}`
-									: "Item Details"}
+									: "Add New Item"}
 							</Text>
 							<IconSymbol
 								name="chevron.right"
@@ -512,7 +512,7 @@ export default function AddItemScreen() {
 							/>
 						</Pressable>
 					) : (
-						<Text style={styles.formTitle}>Item Details</Text>
+							<Text style={styles.formTitle}>Add New Item</Text>
 					)}
 
 					{!formCollapsed && (
