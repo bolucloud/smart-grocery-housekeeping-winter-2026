@@ -403,7 +403,7 @@ export default function AddItemScreen() {
 		setWarnings([]);
 		setBarcodeStatus(null);
 		setShowAdvanced(false);
-		setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 100);
+		setTimeout(() => scrollRef.current?.scrollTo({ x: 0, y: 0, animated: true }), 100);
 	};
 
 	const handleCancelEdit = () => {
@@ -488,82 +488,6 @@ export default function AddItemScreen() {
 				keyboardShouldPersistTaps="handled"
 				style={{ flex: 1 }}
 			>
-				{/* Session list */}
-				{hasSession && (
-					<View style={styles.sessionSection}>
-						<Text style={styles.sessionHeader}>
-							This Session{"  ·  "}{sessionItems.length} {sessionItems.length === 1 ? "item" : "items"}
-						</Text>
-						{sessionItems.map((item) => {
-							const isExpanded = expandedItemId === item.id;
-							const isEditing = editingItemId === item.id;
-							return (
-								<Card
-									key={item.id}
-									onPress={isEditing ? undefined : () => setExpandedItemId(isExpanded ? null : item.id)}
-								>
-									{/* Row */}
-									<View style={styles.sessionRow}>
-										<View style={styles.sessionRowLeft}>
-											{(isExpanded || isEditing) && <View style={styles.dot} />}
-											<View style={{ flex: 1 }}>
-												<View style={styles.sessionNameRow}>
-													<Text style={styles.sessionItemName} numberOfLines={1}>
-														{item.name}
-													</Text>
-													{isEditing && (
-														<Text style={styles.editingLabel}>editing</Text>
-													)}
-												</View>
-												<Text style={styles.sessionItemSubtitle} numberOfLines={1}>
-													{formatItemSubtitle(item)}
-												</Text>
-											</View>
-										</View>
-										<Pressable
-											style={({ pressed }) => [styles.deleteButton, pressed && { opacity: 0.6 }]}
-											onPress={() => handleDeleteItem(item.id)}
-											hitSlop={8}
-										>
-											<IconSymbol name="trash" size={16} color={Colors.textSecondary} />
-										</Pressable>
-									</View>
-
-									{/* Expanded detail */}
-									{isExpanded && !isEditing && (
-										<View style={styles.itemDetail}>
-											<View style={styles.itemDetailDivider} />
-											<View style={styles.detailRow}>
-												<Text style={styles.detailLabel}>Category</Text>
-												<Text style={styles.detailValue}>{item.category}</Text>
-											</View>
-											<View style={styles.detailRow}>
-												<Text style={styles.detailLabel}>Storage</Text>
-												<Text style={styles.detailValue}>{STORAGE_LOCATIONS[item.storageIndex]}</Text>
-											</View>
-											{!!item.size && (
-												<View style={styles.detailRow}>
-													<Text style={styles.detailLabel}>Size</Text>
-													<Text style={styles.detailValue}>{item.size} {item.sizeUnit}</Text>
-												</View>
-											)}
-											{!!item.bestBeforeDate && (
-												<View style={styles.detailRow}>
-													<Text style={styles.detailLabel}>Best before</Text>
-													<Text style={styles.detailValue}>{formatDate(item.bestBeforeDate)}</Text>
-												</View>
-											)}
-											<View style={{ marginTop: Spacing.md }}>
-												<Button title="Update Item" onPress={() => handleStartEdit(item)} fullWidth />
-											</View>
-										</View>
-									)}
-								</Card>
-							);
-						})}
-					</View>
-				)}
-
 				{/* Item details form */}
 				<Card>
 					{hasSession ? (
@@ -869,11 +793,87 @@ export default function AddItemScreen() {
 					)}
 				</Card>
 
+				{/* Session list */}
+				{hasSession && (
+					<View style={styles.sessionSection}>
+						<Text style={styles.sessionHeader}>
+							This Session{"  ·  "}{sessionItems.length} {sessionItems.length === 1 ? "item" : "items"}
+						</Text>
+						{sessionItems.map((item) => {
+							const isExpanded = expandedItemId === item.id;
+							const isEditing = editingItemId === item.id;
+							return (
+								<Card
+									key={item.id}
+									onPress={isEditing ? undefined : () => setExpandedItemId(isExpanded ? null : item.id)}
+								>
+									{/* Row */}
+									<View style={styles.sessionRow}>
+										<View style={styles.sessionRowLeft}>
+											{(isExpanded || isEditing) && <View style={styles.dot} />}
+											<View style={{ flex: 1 }}>
+												<View style={styles.sessionNameRow}>
+													<Text style={styles.sessionItemName} numberOfLines={1}>
+														{item.name}
+													</Text>
+													{isEditing && (
+														<Text style={styles.editingLabel}>editing</Text>
+													)}
+												</View>
+												<Text style={styles.sessionItemSubtitle} numberOfLines={1}>
+													{formatItemSubtitle(item)}
+												</Text>
+											</View>
+										</View>
+										<Pressable
+											style={({ pressed }) => [styles.deleteButton, pressed && { opacity: 0.6 }]}
+											onPress={() => handleDeleteItem(item.id)}
+											hitSlop={8}
+										>
+											<IconSymbol name="trash" size={16} color={Colors.textSecondary} />
+										</Pressable>
+									</View>
+
+									{/* Expanded detail */}
+									{isExpanded && !isEditing && (
+										<View style={styles.itemDetail}>
+											<View style={styles.itemDetailDivider} />
+											<View style={styles.detailRow}>
+												<Text style={styles.detailLabel}>Category</Text>
+												<Text style={styles.detailValue}>{item.category}</Text>
+											</View>
+											<View style={styles.detailRow}>
+												<Text style={styles.detailLabel}>Storage</Text>
+												<Text style={styles.detailValue}>{STORAGE_LOCATIONS[item.storageIndex]}</Text>
+											</View>
+											{!!item.size && (
+												<View style={styles.detailRow}>
+													<Text style={styles.detailLabel}>Size</Text>
+													<Text style={styles.detailValue}>{item.size} {item.sizeUnit}</Text>
+												</View>
+											)}
+											{!!item.bestBeforeDate && (
+												<View style={styles.detailRow}>
+													<Text style={styles.detailLabel}>Best before</Text>
+													<Text style={styles.detailValue}>{formatDate(item.bestBeforeDate)}</Text>
+												</View>
+											)}
+											<View style={{ marginTop: Spacing.md }}>
+												<Button title="Update Item" onPress={() => handleStartEdit(item)} fullWidth />
+											</View>
+										</View>
+									)}
+								</Card>
+							);
+						})}
+					</View>
+				)}
+
 				{/* Save as Grocery Run */}
 				{hasSession && (
 					<Button
-						title="Save as Grocery Run..."
-						variant="secondary"
+						title="Save List"
+						variant="success"
 						onPress={() => setShowSaveModal(true)}
 						fullWidth
 						size="lg"
