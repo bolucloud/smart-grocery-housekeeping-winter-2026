@@ -92,9 +92,9 @@ export const Spacing = {
 
 // ─── Border Radius Tokens ───────────────────────────────────
 export const BorderRadius = {
-	sm: 8,
-	md: 12,
-	lg: 16,
+	sm: 4,
+	md: 4,
+	lg: 4,
 	full: 9999,
 } as const;
 
