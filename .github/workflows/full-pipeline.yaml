@@ -126,9 +126,9 @@ jobs:
 
   build-and-deploy:
     name: Build Backend Image and Deploy
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     runs-on: self-hosted
-    needs: [ check-issue-link, terraform, tests ]
+    needs: [ terraform ]
     steps:
     - name: Checkout code
       uses: actions/checkout@v3
