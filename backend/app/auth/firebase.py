@@ -13,7 +13,6 @@ def init_firebase() -> None:
     # get_app() raising a ValueError means the instance does not exist
     try:
         firebase_admin.get_app()
-        return
     except ValueError:
         # this is here so that an exception will be raised if credentials are missing
         # this exception is caught in startup, logs some useful info, then raises a RuntimeError
