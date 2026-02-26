@@ -60,7 +60,7 @@ poetry install
 
 ## Run server
 ```bash
-poetry run uvicorn main:app --reload
+poetry run uvicorn app.main:app --reload
 ```
 
 ## Dependency management with Poetry
