@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
 	ActivityIndicator,
 	Alert,
@@ -255,6 +255,10 @@ export default function AddItemScreen() {
 		const t = new Date();
 		return [t.getFullYear(), String(t.getMonth() + 1).padStart(2, "0"), String(t.getDate()).padStart(2, "0")].join("-");
 	});
+
+	// Stable "today" Date — memoized so it doesn't change on every render and
+	// destabilize the iOS DateTimePicker when passed as maximumDate
+	const today = useMemo(() => new Date(), []);
 
 	// Auto-expand form when session is emptied
 	useEffect(() => {
@@ -702,7 +706,7 @@ export default function AddItemScreen() {
 								value={formData.purchaseDate}
 								onChange={(v) => set("purchaseDate", v)}
 								minimumDate={new Date(2000, 0, 1)}
-								maximumDate={new Date()}
+								maximumDate={today}
 							/>
 
 							{/* Best Before Date */}
@@ -918,7 +922,7 @@ export default function AddItemScreen() {
 								value={runDate}
 								onChange={setRunDate}
 								minimumDate={new Date(2000, 0, 1)}
-								maximumDate={new Date()}
+								maximumDate={today}
 							/>
 						</View>
 						<View style={styles.modalButtons}>
