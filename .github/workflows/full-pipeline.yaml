@@ -129,20 +129,23 @@ jobs:
     - name: Get pytest output
       id: get-output
       run: |
-        echo "pytest_output<<EOF" >> $GITHUB_OUTPUT
-        cat pytest_outputs.txt >> $GITHUB_OUTPUT
-        echo "EOF" >> $GITHUB_OUTPUT
+        {
+          echo 'OUTPUT<<EOF'
+          cat pytest_outputs.txt
+          echo "EOF"
+        } >> $GITHUB_ENV
 
     - name: Pytest Results Comment
       uses: actions/github-script@v7
       with:
         script: |
-          const pytest_output = `## Pytest Results\n\n\`\`\`\n${{ steps.get-output.outputs.output }}\n\`\`\``;
+          const output = process.env.OUTPUT;
+          const comment = `## Pytest Results\n\n\`\`\`\n${output}\n\`\`\``;          
           await github.rest.issues.createComment({
             issue_number: context.issue.number,
             owner: context.repo.owner,
             repo: context.repo.repo,
-            body: pytest_output
+            body: comment
           });
 
     - name: Fail if tests failed
