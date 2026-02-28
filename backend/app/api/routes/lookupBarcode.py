@@ -18,7 +18,7 @@ def _normalize_none(s: str | None) -> str | None:
     return s if s else None
  
 async def fetch_from_fdc(client: httpx.AsyncClient, upc: str) -> dict | None:
-    api_key=os.environ("FDC_API_KEY")
+    api_key=os.environ["FDC_API_KEY"]
     if not api_key:
         raise HTTPException(status_code=500, detail="FDC_API_KEY is not set")
  
@@ -31,7 +31,11 @@ async def fetch_from_fdc(client: httpx.AsyncClient, upc: str) -> dict | None:
  
     r = await client.get(f"{FDC_BASE}/foods/search", params=params)
     if r.status_code != 200:
-        raise HTTPException(status_code=502, detail={"source": "fdc", "status": r.status_code, "body": r.text})
+        raise HTTPException(status_code=502,  detail={
+            "source": "fdc",
+            "message": "Upstream service error. Please try again later.",
+            "status": r.status_code,
+        },)
  
     data = r.json()
     foods = data.get("foods") or []
@@ -121,7 +125,10 @@ async def lookup_barcode(upc: str):
     if not upc.isdigit():
         raise HTTPException(status_code=400, detail="UPC must be digits only")
     if len(upc) not in (8, 12, 13, 14):
-        pass
+        raise HTTPException(
+        status_code=400,
+        detail="UPC must be 8, 12, 13, or 14 digits long"
+    )
  
     async with httpx.AsyncClient(timeout=TIMEOUT) as client:
         # Try FDC
