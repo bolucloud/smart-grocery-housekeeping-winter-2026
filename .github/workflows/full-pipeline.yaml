@@ -121,8 +121,36 @@ jobs:
         pip install pytest pytest-asyncio pytest-cov httpx pydantic 'pydantic[email]' fastapi firebase-admin sqlalchemy dotenv psycopg2 psycopg2-binary 
 
     - name: Run tests
+      continue-on-error: true
       run: |
-        pytest --cov=backend backend/tests/
+        pytest --cov=backend backend/tests/ > pytest_outputs.txt 2>&1
+        echo "exit_code=$?" >> $GITHUB_OUTPUT
+
+    - name: Get pytest output
+      id: get-output
+      run: |
+        {
+          echo 'OUTPUT<<EOF'
+          cat pytest_outputs.txt
+          echo "EOF"
+        } >> $GITHUB_ENV
+
+    - name: Pytest Results Comment
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const output = process.env.OUTPUT;
+          const comment = `## Pytest Results\n\n\`\`\`\n${output}\n\`\`\``;          
+          await github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: comment
+          });
+
+    - name: Fail if tests failed
+      if: steps.pytest.outputs.exit_code != '0'
+      run: exit 1
 
   build-and-deploy:
     name: Build Backend Image and Deploy
