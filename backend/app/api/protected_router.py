@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends
 from app.api.deps import get_firebase_claims
-from app.api.routes import user, grocery_run, inventory_batch, product
+from app.api.routes import user, grocery_run, inventory_batch, product, recognizeItem, lookupBarcode
 
 
 private_api_router = APIRouter(
