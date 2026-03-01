@@ -18,6 +18,8 @@ export function StyledTextInput({ label, required, error, hint, style, ...rest }
 				</Text>
 			)}
 			<TextInput
+				autoCorrect={false}
+				spellCheck={false}
 				style={[styles.input, error && styles.inputError, style]}
 				placeholderTextColor={Colors.textTertiary}
 				{...rest}

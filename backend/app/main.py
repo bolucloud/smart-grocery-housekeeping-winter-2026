@@ -6,8 +6,7 @@ from fastapi.responses import JSONResponse
 
 from app.api.public_router import public_api_router
 from app.api.protected_router import private_api_router
-from app.db.base import Base
-from app.db.session import engine
+from app.db.init_db import init_db
 
 from app.auth.firebase import init_firebase
 from google.auth.exceptions import DefaultCredentialsError
@@ -30,7 +29,7 @@ async def lifespan(app: FastAPI):
         logger.exception("Firebase init failed during startup.")
         raise RuntimeError("Firebase initialization failed; see logs for details.") from e
     # TEMP for learning (later use Alembic)
-    Base.metadata.create_all(bind=engine)
+    init_db()
     yield
     # --- app teardown ---
 

@@ -94,15 +94,15 @@ jobs:
       if: github.event_name == 'pull_request'
       run: terraform plan -no-color -input=false
       working-directory: ./infrastructure
-    # - name: Terraform apply
-    #   if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    #   run: terraform apply -auto-approve -input=false
-    #   working-directory: ./infrastructure
+    - name: Terraform apply
+      if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+      run: terraform apply -auto-approve -input=false
+      working-directory: ./infrastructure
 
   tests:
     name: Run Python tests
     runs-on: self-hosted
-    # if: github.event_name == 'pull_request'
+    if: github.event_name == 'pull_request'
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
@@ -121,14 +121,42 @@ jobs:
         pip install pytest pytest-asyncio pytest-cov httpx pydantic 'pydantic[email]' fastapi firebase-admin sqlalchemy dotenv psycopg2 psycopg2-binary 
 
     - name: Run tests
+      continue-on-error: true
       run: |
-        pytest --cov=backend backend/tests/
+        pytest --cov=backend backend/tests/ > pytest_outputs.txt 2>&1
+        echo "exit_code=$?" >> $GITHUB_OUTPUT
+
+    - name: Get pytest output
+      id: get-output
+      run: |
+        {
+          echo 'OUTPUT<<EOF'
+          cat pytest_outputs.txt
+          echo "EOF"
+        } >> $GITHUB_ENV
+
+    - name: Pytest Results Comment
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const output = process.env.OUTPUT;
+          const comment = `## Pytest Results\n\n\`\`\`\n${output}\n\`\`\``;          
+          await github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: comment
+          });
+
+    - name: Fail if tests failed
+      if: steps.pytest.outputs.exit_code != '0'
+      run: exit 1
 
   build-and-deploy:
     name: Build Backend Image and Deploy
-    if: github.event.pull_request.merged == true
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     runs-on: self-hosted
-    needs: [ check-issue-link, terraform, tests ]
+    needs: [ terraform ]
     steps:
     - name: Checkout code
       uses: actions/checkout@v3
@@ -152,16 +180,6 @@ jobs:
       run: |
         aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 480428003157.dkr.ecr.us-east-1.amazonaws.com
 
-    # - name: Login to AWS ECR
-    #   id: login-ecr
-    #   uses: aws-actions/amazon-ecr-login@v2
-    #   with:
-    #     mask-password: true
-
-
-    # - name: Setup Docker Buildx
-    #   uses: docker/setup-buildx-action@v3
-
     - name: Build docker image
       id: build-image
       run: |
@@ -170,7 +188,7 @@ jobs:
         MAJOR_MINOR_VERSION="1.0"
         BUILD_NUMBER=${GITHUB_RUN_NUMBER}
         VERSION="${MAJOR_MINOR_VERSION}-${BUILD_NUMBER}"
-        docker build --platform linux/amd64 -t ${ECR_REPO_URI}:$VERSION -t ${ECR_REPO_URI}:latest -f backend/Dockerfile .
+        docker build --platform linux/amd64 --build-arg "DATABASE_URL=${{ secrets.DATABASE_URL }}" -t ${ECR_REPO_URI}:$VERSION -t ${ECR_REPO_URI}:latest -f backend/Dockerfile .
 
     - name: Push docker image to ECR
       id: push-to-ecr
@@ -187,9 +205,8 @@ jobs:
     - name: Force New ECS Deployment on new image build
       run: |
         # Force new deployment with existing task definition
-        # aws ecs update-service \
-        #   --cluster ${ECS_CLUSTER} \
-        #   --service ${ECS_SERVICE} \
-        #   --force-new-deployment \
-        #   --region ${AWS_REGION}
-        echo "do nothing for now....uncomment this step when service is up and running in ecs"
+        aws ecs update-service \
+          --cluster ${ECS_CLUSTER} \
+          --service ${ECS_SERVICE} \
+          --force-new-deployment \
+          --region ${AWS_REGION}

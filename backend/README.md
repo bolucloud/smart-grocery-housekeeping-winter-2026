@@ -60,7 +60,7 @@ poetry install
 
 ## Run server
 ```bash
-poetry run uvicorn main:app --reload
+poetry run uvicorn app.main:app --reload
 ```
 
 ## Dependency management with Poetry
@@ -96,14 +96,14 @@ poetry run pytest
 See this GitHub issue thread for troubleshooting virtual environment issues with Poetry:
 https://github.com/python-poetry/poetry/issues/6841
 
-## Firebase setup (shared dev project) for local FastAPI testing
+## Firebase setup for local FastAPI testing
 
-This guide sets up Firebase for local development against our **shared Firebase dev project**.
+This guide sets up Firebase for local development
 Each teammate will:
-1) be added to the shared Firebase project,
+1) create their own Firebase project,
 2) generate their **own** service account key JSON,
 3) set `GOOGLE_APPLICATION_CREDENTIALS` locally,
-4) create a test Email/Password user in Firebase Auth (or use an existing one).
+4) create a test Email/Password user in Firebase Auth.
 
 Do **not** commit or share service account private keys in the repo.
 Each developer generates their own key and stores it locally (outside the repo or gitignored).
@@ -115,44 +115,30 @@ Note: we will want other auth methods than plain Email/Password, but this is a g
 ### 0) Prereqs
 
 - You have a Google account email you can use to access Firebase.
-- The project owner (currently: **John**) has added your email to the Firebase project.
 
 Firebase Console:
 https://console.firebase.google.com/
 
 ---
 
-### 1) Project owner steps (John)
+### 1) Create Your Own Firebase Project (Required)
 
-#### 1.1 Create / choose the shared Firebase dev project
+Each teammate must create their **own Firebase project** for local testing.
+
+#### 1.1 Create the project
 1. Go to: https://console.firebase.google.com/
-2. Click **Add project** (or open the existing shared dev project).
-3. Follow the prompts to create the project (Google Analytics is optional for local testing).
-
-#### 1.2 Add teammates to the project
-1. In Firebase Console, click **Project settings**
-2. Open **Users and permissions**
-3. Click **Add member**
-4. Enter teammate Google account email(s)
-5. Assign a role (recommended: **Editor** for dev)
-6. Click **Add**
-
-Teammates will not be able to generate their own keys unless they have sufficient permissions.
+2. Click **Add project**
+3. Enter a project name (recommended format)
+4. Continue through the setup prompts
+- Google Analytics: Optional (can be disabled for local dev)
+5. Click **Create project**
+6. Wait for provisioning to complete and click **Continue**
 
 ---
 
-### 2) Teammate steps (everyone who wants to test)
+### 2) Enable Firebase Authentication (Email/Password)
 
-#### 2.1 Accept the invite / confirm access
-1. Open: https://console.firebase.google.com/
-2. Confirm you can see the shared dev project in the project list.
-3. Click into the shared dev project.
-
----
-
-### 3) Enable Firebase Authentication (Email/Password)
-
-This is typically done once per project. If it’s already enabled, you can skip.
+This is typically done once per project.
 
 1. In Firebase Console: **Build → Authentication**
 2. Go to **Sign-in method**
@@ -164,7 +150,7 @@ https://firebase.google.com/docs/auth/web/password-auth
 
 ---
 
-### 4) Create a test user in Firebase Console (email/password)
+### 3) Create a test user in Firebase Console (email/password)
 
 Each developer can create a test user for local testing.
 
@@ -178,11 +164,11 @@ https://support.google.com/firebase/answer/6400802?hl=en
 
 ---
 
-### 5) Generate your own service account key (Admin SDK credentials)
+### 4) Generate your own service account key (Admin SDK credentials)
 
 Our FastAPI backend uses Firebase Admin SDK, which needs server-side credentials.
 
-Each teammate should generate their **own** private key JSON from the shared dev project:
+Each teammate should generate their **own** private key JSON from their Firebase project.
 
 1. Firebase Console → **Project settings**
 2. Go to **Service accounts**
@@ -196,7 +182,7 @@ Treat this JSON like a password. Anyone with it can act as a privileged server a
 
 ---
 
-### 6) Store the JSON locally (DO NOT COMMIT)
+### 5) Store the JSON locally (DO NOT COMMIT)
 
 Recommended local path:
 
@@ -204,7 +190,7 @@ Recommended local path:
 
 If you instead add in the repo, ensure it is gitignored.
 
-### 7) shell configuration
+### 6) Shell configuration
 
 On macOS, the default shell is **zsh**.
 

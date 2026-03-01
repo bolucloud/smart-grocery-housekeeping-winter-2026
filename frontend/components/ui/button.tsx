@@ -3,7 +3,7 @@ import { Pressable, type StyleProp, StyleSheet, Text, type ViewStyle } from "rea
 import { BorderRadius, Colors, FontSizes, FontWeights, Shadows, Spacing } from "@/constants/theme";
 import { IconSymbol } from "./icon-symbol";
 
-type ButtonVariant = "primary" | "secondary" | "danger";
+type ButtonVariant = "primary" | "secondary" | "danger" | "success";
 type ButtonSize = "sm" | "md" | "lg";
 
 type ButtonProps = {
@@ -50,6 +50,11 @@ const variantStyles = {
 		bg: Colors.redBg,
 		text: Colors.redTextDark,
 		border: Colors.redBorder,
+	},
+	success: {
+		bg: Colors.greenBg,
+		text: Colors.greenTextDark,
+		border: Colors.greenBorder,
 	},
 };
 
